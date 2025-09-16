@@ -41,6 +41,9 @@ public class User extends AbstractEntity {
     @Column(nullable = false)
     private UserStatus status;
 
+    @Column(name = "refresh_token", columnDefinition = "MEDIUMTEXT")
+    private String refreshToken;
+
     @ManyToMany(fetch = FetchType.LAZY,
                 cascade = {CascadeType.DETACH, CascadeType.MERGE,
                            CascadeType.REFRESH})

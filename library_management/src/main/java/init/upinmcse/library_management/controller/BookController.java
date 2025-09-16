@@ -2,15 +2,19 @@ package init.upinmcse.library_management.controller;
 
 import init.upinmcse.library_management.dto.ApiResponse;
 import init.upinmcse.library_management.dto.request.BookCreationRequest;
+import init.upinmcse.library_management.dto.request.BorrowBookRequest;
+import init.upinmcse.library_management.dto.request.SearchRequest;
 import init.upinmcse.library_management.dto.response.BookResponse;
 import init.upinmcse.library_management.service.BookService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -25,8 +29,10 @@ public class BookController {
 
     @PostMapping()
     @Operation(summary = "Add a new book")
-    public ResponseEntity<ApiResponse<BookResponse>> addBook(@RequestBody BookCreationRequest request){
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<BookResponse>> addBook(@Valid @RequestBody BookCreationRequest request){
         ApiResponse<BookResponse> apiResponse = ApiResponse.<BookResponse>builder()
+                .statusCode(HttpStatus.CREATED.value())
                 .message("Add Book Success")
                 .data(bookService.addBook(request))
                 .build();
@@ -46,21 +52,56 @@ public class BookController {
     @GetMapping("")
     @Operation(summary = "Get all books", description = "Retrieve a list of all books in the library")
     public ResponseEntity<ApiResponse<List<BookResponse>>> getAllBooks(){
-        List<BookResponse> books = bookService.getAllBooks();
         ApiResponse<List<BookResponse>> apiResponse = ApiResponse.<List<BookResponse>>builder()
                 .message("Get All Books Success")
-                .data(books)
+                .data(bookService.getAllBooks())
                 .build();
         return ResponseEntity.ok(apiResponse);
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "Delete book by id", description = "Soft delete a book in the library")
     public ResponseEntity<ApiResponse<Void>> deleteBook(@PathVariable("id") int id){
         bookService.deleteBook(id);
         ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
                 .message("Delete Book Success")
-                .data(null)
+                .build();
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @GetMapping("/genre/{name}")
+    @Operation(summary = "Get books by genre", description = "Retrieve a list of all books in the library")
+    public ResponseEntity<ApiResponse<List<BookResponse>>> getBooksByGenre(@PathVariable("name") String name){
+        return null;
+    }
+
+    @GetMapping("/author/{name}")
+    @Operation(summary = "Get books by author", description = "Retrieve a list of all books in the library")
+    public ResponseEntity<ApiResponse<List<BookResponse>>> getBooksByAuthor(@PathVariable("name") String name){
+        return null;
+    }
+
+    @GetMapping("/search")
+    public ResponseEntity<ApiResponse<List<BookResponse>>> getBooksBySearch(@RequestBody SearchRequest request){
+        return null;
+    }
+
+    @PostMapping("/borrow")
+    public ResponseEntity<ApiResponse<Void>> borrowBook(@RequestBody BorrowBookRequest request){
+        bookService.borrowBook(request);
+        ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
+                .statusCode(HttpStatus.CREATED.value())
+                .message("Borrow Book Success")
+                .build();
+        return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
+    }
+
+    @PostMapping("/return")
+    public ResponseEntity<ApiResponse<Void>> returnBook(@RequestBody BorrowBookRequest request){
+        bookService.returnBook(request);
+        ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
+                .message("Return Book Success")
                 .build();
         return ResponseEntity.ok(apiResponse);
     }

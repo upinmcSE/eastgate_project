@@ -3,7 +3,6 @@ package init.upinmcse.library_management.model;
 import init.upinmcse.library_management.constant.BorrowBookStatus;
 import jakarta.persistence.*;
 import lombok.*;
-import org.springframework.context.annotation.Primary;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import java.time.LocalDateTime;
