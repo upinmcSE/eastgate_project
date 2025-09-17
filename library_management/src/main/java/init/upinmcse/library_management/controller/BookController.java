@@ -16,6 +16,8 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -74,13 +76,21 @@ public class BookController {
     @GetMapping("/genre/{name}")
     @Operation(summary = "Get books by genre", description = "Retrieve a list of all books in the library")
     public ResponseEntity<ApiResponse<List<BookResponse>>> getBooksByGenre(@PathVariable("name") String name){
-        return null;
+        ApiResponse<List<BookResponse>> apiResponse = ApiResponse.<List<BookResponse>>builder()
+                .message("Get All Books by genre successful")
+                .data(bookService.searchBooksByGenre(name))
+                .build();
+        return ResponseEntity.ok(apiResponse);
     }
 
     @GetMapping("/author/{name}")
     @Operation(summary = "Get books by author", description = "Retrieve a list of all books in the library")
     public ResponseEntity<ApiResponse<List<BookResponse>>> getBooksByAuthor(@PathVariable("name") String name){
-        return null;
+        ApiResponse<List<BookResponse>> apiResponse = ApiResponse.<List<BookResponse>>builder()
+                .message("Get All Books by author successful")
+                .data(bookService.searchBooksByAuthor(name))
+                .build();
+        return ResponseEntity.ok(apiResponse);
     }
 
     @GetMapping("/search")
@@ -121,9 +131,24 @@ public class BookController {
         return ResponseEntity.ok(apiResponse);
     }
 
-    @GetMapping("/borrow/list/{id}")
+    @GetMapping("/borrow/list/book/{id}")
+    @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "...", description = "...")
-    public ResponseEntity<ApiResponse<List<BorrowBookResponse>>> borrowBookOfUser(@PathVariable("id") int userId){
+    public ResponseEntity<ApiResponse<List<BorrowBookResponse>>> borrowBookOfBook(@PathVariable("id") int bookId){
+        ApiResponse<List<BorrowBookResponse>> apiResponse = ApiResponse.<List<BorrowBookResponse>>builder()
+                .message("Get All borrow book successful")
+                .data(bookService.getAllBorrowedBookOfBook(bookId))
+                .build();
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @GetMapping("/borrow/list/user/{id}")
+    @PreAuthorize("hasRole('ADMIN') or #userId == #jwt.claims['userId'] ")
+    @Operation(summary = "...", description = "...")
+    public ResponseEntity<ApiResponse<List<BorrowBookResponse>>> borrowBookOfUser(
+            @PathVariable("id") int userId,
+            @AuthenticationPrincipal Jwt jwt
+    ){
         ApiResponse<List<BorrowBookResponse>> apiResponse = ApiResponse.<List<BorrowBookResponse>>builder()
                 .message("Get All borrow book successful")
                 .data(bookService.getAllBorrowedBookOfUser(userId))
@@ -136,6 +161,8 @@ public class BookController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<List<BorrowBookResponse>>> borrowBookOverdue(){
         ApiResponse<List<BorrowBookResponse>> apiResponse = ApiResponse.<List<BorrowBookResponse>>builder()
+                .message("Get All borrow book over due successful")
+                .data(bookService.getAllBorrowedBookOverDue())
                 .build();
         return ResponseEntity.ok(apiResponse);
     }

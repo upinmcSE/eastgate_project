@@ -57,10 +57,18 @@ public class BookQueueServiceImpl implements BookQueueService {
     }
 
     @Override
-    public List<BorrowQueueResponse> getBookQueues() {
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+    public List<BorrowQueueResponse> getBookQueueOfBook(int bookId) {
+        Book book = this.bookRepository.findById(bookId)
+                .orElseThrow(() -> new EntityNotFoundException("Book not found"));
 
-        User user = this.userRepository.findByEmail(username)
+        List<BorrowQueue> borrowQueueList = this.bookQueueRepository.findAllByBookIdAndStatus(book.getId(), BorrowQueueStatus.PENDING);
+
+        return borrowQueueList.stream().map(this.borrowQueueMapper::toBorrowQueueResponse).toList();
+    }
+
+    @Override
+    public List<BorrowQueueResponse> getBookQueueOfUser(int userId) {
+        User user = this.userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
         List<BorrowQueue> borrowQueueList = this.bookQueueRepository.findAllByUserIdAndStatus(user.getId(), BorrowQueueStatus.PENDING);
@@ -75,7 +83,7 @@ public class BookQueueServiceImpl implements BookQueueService {
         if(borrowQueue.isEmpty()) {
             return false;
         }
-        borrowQueue.get().setStatus(BorrowQueueStatus.BORROWED);
+        borrowQueue.get().setStatus(BorrowQueueStatus.COMPLETED);
         this.bookQueueRepository.save(borrowQueue.get());
         return true;
     }

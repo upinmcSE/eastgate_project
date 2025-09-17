@@ -14,7 +14,9 @@ public interface BookService {
     BookResponse getBookById(int bookId);
     List<BookResponse> getAllBooks();
     List<BorrowBookResponse> getAllBorrowedBookOfUser(int userId);
+    List<BorrowBookResponse> getAllBorrowedBookOfBook(int bookId);
     List<BorrowBookResponse> getAllBorrowedBooks();
+    List<BorrowBookResponse> getAllBorrowedBookOverDue();
     List<BookResponse> searchBooksByTitle(String title);
     List<BookResponse> searchBooksByAuthor(String author);
     List<BookResponse> searchBooksByGenre(String genre);

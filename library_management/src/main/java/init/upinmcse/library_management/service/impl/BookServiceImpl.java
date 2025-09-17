@@ -8,6 +8,7 @@ import init.upinmcse.library_management.dto.request.BookCreationRequest;
 import init.upinmcse.library_management.dto.request.BorrowBookRequest;
 import init.upinmcse.library_management.dto.response.BookResponse;
 import init.upinmcse.library_management.dto.response.BorrowBookResponse;
+import init.upinmcse.library_management.event.BookReturnedEvent;
 import init.upinmcse.library_management.exception.EntityNotFoundException;
 import init.upinmcse.library_management.mapper.BookMapper;
 import init.upinmcse.library_management.mapper.BorrowBookMapper;
@@ -20,6 +21,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
@@ -44,6 +46,8 @@ public class BookServiceImpl implements BookService {
     LateFeeRepository lateFeeRepository;
     BorrowBookMapper borrowBookMapper;
     BookMapper bookMapper;
+
+    ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional
@@ -152,10 +156,13 @@ public class BookServiceImpl implements BookService {
 
         borrowBook.setStatus(BorrowBookStatus.RETURNED);
 
-        bookRepository.save(book);
         borrowBook = borrowBookRepository.save(borrowBook);
+        bookRepository.save(book);
 
         // push event message
+        eventPublisher.publishEvent(BookReturnedEvent.builder()
+                        .bookId(book.getId())
+                        .build());
 
         return this.borrowBookMapper.toBorrowBookResponse(borrowBook);
     }
@@ -178,6 +185,12 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
+    public List<BorrowBookResponse> getAllBorrowedBookOverDue() {
+        List<BorrowBook> borrowBooks = this.borrowBookRepository.findByStatusAndDueDateBefore(BorrowBookStatus.BORROWED, LocalDateTime.now());
+        return borrowBooks.stream().map(this.borrowBookMapper::toBorrowBookResponse).toList();
+    }
+
+    @Override
     public List<BorrowBookResponse> getAllBorrowedBookOfUser(int userId) {
         User user = this.userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
@@ -190,18 +203,38 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
+    public List<BorrowBookResponse> getAllBorrowedBookOfBook(int bookId) {
+        Book book = this.bookRepository.findById(bookId)
+                .orElseThrow(() -> new EntityNotFoundException("Book not found"));
+
+        List<BorrowBook> borrowBooks = this.borrowBookRepository.findAllByBookIdAndStatus(book.getId(), BorrowBookStatus.BORROWED);
+
+        return borrowBooks.stream().map(borrowBookMapper::toBorrowBookResponse).toList();
+    }
+
+    @Override
     public List<BookResponse> searchBooksByTitle(String title) {
         return List.of();
     }
 
     @Override
-    public List<BookResponse> searchBooksByAuthor(String author) {
-        return List.of();
+    public List<BookResponse> searchBooksByAuthor(String authorName) {
+        Author author = this.authorRepository.findByFullName(authorName)
+                .orElseThrow(() -> new EntityNotFoundException("Author not found"));
+
+        List<Book> bookList = this.bookRepository.findBookeByAuthor(BookStatus.ENABLE, author.getFullName());
+
+        return bookList.stream().map(bookMapper::toBookResponse).toList();
     }
 
     @Override
-    public List<BookResponse> searchBooksByGenre(String genre) {
-        return List.of();
+    public List<BookResponse> searchBooksByGenre(String genreName) {
+        Genre genre = this.genreRepository.findByGenreName(genreName)
+                .orElseThrow(() -> new EntityNotFoundException("Genre not found"));
+
+        List<Book> bookList = this.bookRepository.findBooksByGenre(BookStatus.ENABLE, genre.getGenreName());
+
+        return bookList.stream().map(bookMapper::toBookResponse).toList();
     }
 
     @Override

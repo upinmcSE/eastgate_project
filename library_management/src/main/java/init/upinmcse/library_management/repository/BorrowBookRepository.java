@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -26,4 +27,8 @@ public interface BorrowBookRepository extends JpaRepository<BorrowBook, Integer>
                                                            @Param("status")BorrowBookStatus status);
 
     List<BorrowBook> findAllByUserIdAndStatus(Integer userId, BorrowBookStatus status);
+
+    List<BorrowBook> findAllByBookIdAndStatus(Integer bookId, BorrowBookStatus status);
+
+    List<BorrowBook> findByStatusAndDueDateBefore(BorrowBookStatus status, LocalDateTime now);
 }

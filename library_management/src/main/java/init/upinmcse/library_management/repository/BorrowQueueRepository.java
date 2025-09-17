@@ -28,4 +28,8 @@ public interface BorrowQueueRepository extends JpaRepository<BorrowQueue, Intege
     Optional<BorrowQueue> findBorrowQueueByIdAndStatus(Integer borrowBookId, BorrowQueueStatus status);
 
     List<BorrowQueue> findAllByUserIdAndStatus(Integer userId, BorrowQueueStatus status);
+
+    List<BorrowQueue> findAllByBookIdAndStatus(Integer bookId, BorrowQueueStatus status);
+
+    Optional<BorrowQueue> findFirstByBookIdAndStatusOrderByCreatedAtAsc(Integer bookId, BorrowQueueStatus status);
 }

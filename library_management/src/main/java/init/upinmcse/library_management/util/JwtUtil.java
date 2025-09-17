@@ -49,6 +49,7 @@ public class JwtUtil {
                 .expirationTime(new Date(Instant.now().plus(expiryTimeInSeconds, ChronoUnit.SECONDS).toEpochMilli()))
                 .jwtID(UUID.randomUUID().toString())
                 .claim("scope", buildScope(user))
+                .claim("userId", user.getId())
                 .build();
 
         Payload payload = new Payload(claimsSet.toJSONObject());

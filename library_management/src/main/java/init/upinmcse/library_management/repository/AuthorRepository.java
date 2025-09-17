@@ -10,4 +10,5 @@ import java.util.Optional;
 @Repository
 public interface AuthorRepository extends JpaRepository<Author, Integer>, JpaSpecificationExecutor<Author> {
     Optional<Author> findByEmail(String name);
+    Optional<Author> findByFullName(String fullName);
 }
