@@ -8,5 +8,6 @@ import java.util.List;
 public interface BookQueueService {
     BorrowQueueResponse registerBookQueue(BorrowQueueRequest request);
     List<BorrowQueueResponse> getBookQueues();
-    void cancelBookQueue(BorrowQueueRequest request);
+    boolean changeStatus(int borrowQueueId);
+    void cancelBookQueue(int borrowQueueId);
 }

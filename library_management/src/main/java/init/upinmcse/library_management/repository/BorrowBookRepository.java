@@ -8,6 +8,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -23,4 +24,6 @@ public interface BorrowBookRepository extends JpaRepository<BorrowBook, Integer>
     Optional<BorrowBook> findBorrowedBookByBookIdAndUserId(@Param("bookId") Integer bookId,
                                                            @Param("userId") Integer userId,
                                                            @Param("status")BorrowBookStatus status);
+
+    List<BorrowBook> findAllByUserIdAndStatus(Integer userId, BorrowBookStatus status);
 }

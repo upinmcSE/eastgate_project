@@ -5,10 +5,11 @@ import lombok.*;
 @Builder
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
-public class BorrowQueueRequest {
-    private int bookId;
+@NoArgsConstructor
+public class LateFeeCreationRequest {
     private int userId;
-    private int duration;
+    private int bookId;
+    private double fee;
+    private String description;
 }

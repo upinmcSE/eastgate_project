@@ -12,6 +12,7 @@ import init.upinmcse.library_management.repository.BookRepository;
 import init.upinmcse.library_management.repository.BorrowQueueRepository;
 import init.upinmcse.library_management.repository.UserRepository;
 import init.upinmcse.library_management.service.BookQueueService;
+import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -31,6 +32,7 @@ public class BookQueueServiceImpl implements BookQueueService {
     BorrowQueueMapper borrowQueueMapper;
 
     @Override
+    @Transactional
     public BorrowQueueResponse registerBookQueue(BorrowQueueRequest request) {
         User user = this.userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
@@ -38,7 +40,7 @@ public class BookQueueServiceImpl implements BookQueueService {
         Book book = this.bookRepository.findById(request.getBookId())
                 .orElseThrow(() -> new EntityNotFoundException("Book not found"));
 
-        Optional<BorrowQueue> borrowQueue = this.bookQueueRepository.findByBorrowQueueByBookIdAndUserId(book.getId(), user.getId(), BorrowQueueStatus.PENDING);
+        Optional<BorrowQueue> borrowQueue = this.bookQueueRepository.findBorrowQueueByBookIdAndUserId(book.getId(), user.getId(), BorrowQueueStatus.PENDING);
 
         if(borrowQueue.isPresent()) {
             throw new EntityNotFoundException("Borrow queue already exists");
@@ -47,6 +49,7 @@ public class BookQueueServiceImpl implements BookQueueService {
         BorrowQueue newBorrowQueue = BorrowQueue.builder()
                 .book(book)
                 .user(user)
+                .duration(request.getDuration())
                 .status(BorrowQueueStatus.PENDING)
                 .build();
 
@@ -66,11 +69,25 @@ public class BookQueueServiceImpl implements BookQueueService {
     }
 
     @Override
-    public void cancelBookQueue(BorrowQueueRequest request) {
-        BorrowQueue borrowQueue = this.bookQueueRepository.findByBorrowQueueByBookIdAndUserId(request.getBookId(), request.getUserId(), BorrowQueueStatus.PENDING)
+    @Transactional
+    public boolean changeStatus(int borrowQueueId) {
+        Optional<BorrowQueue> borrowQueue = this.bookQueueRepository.findBorrowQueueByIdAndStatus(borrowQueueId, BorrowQueueStatus.PENDING);
+        if(borrowQueue.isEmpty()) {
+            return false;
+        }
+        borrowQueue.get().setStatus(BorrowQueueStatus.BORROWED);
+        this.bookQueueRepository.save(borrowQueue.get());
+        return true;
+    }
+
+    @Override
+    @Transactional
+    public void cancelBookQueue(int borrowQueueId) {
+        BorrowQueue borrowQueue = this.bookQueueRepository.findBorrowQueueByIdAndStatus(borrowQueueId, BorrowQueueStatus.PENDING)
                 .orElseThrow(() -> new EntityNotFoundException("Borrow queue not found"));
 
-        borrowQueue.setStatus(BorrowQueueStatus.BORROWED);
-        this.bookQueueRepository.save(borrowQueue);
+//        borrowQueue.setStatus(BorrowQueueStatus.BORROWED);
+//        this.bookQueueRepository.save(borrowQueue);
+        this.bookQueueRepository.delete(borrowQueue);
     }
 }

@@ -47,10 +47,10 @@ public class BookQueueController {
         return ResponseEntity.ok(apiResponse);
     }
 
-    @GetMapping()
+    @DeleteMapping("/{id}")
     @Operation(summary = "...", description = "...")
-    public ResponseEntity<ApiResponse<Void>> cancelQueue(@Valid @RequestBody BorrowQueueRequest request) {
-        bookQueueService.cancelBookQueue(request);
+    public ResponseEntity<ApiResponse<Void>> cancelQueue(@PathVariable("id") int id) {
+        bookQueueService.cancelBookQueue(id);
         ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
                 .message("Cancel book queue successful")
                 .build();

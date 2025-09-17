@@ -5,6 +5,7 @@ import init.upinmcse.library_management.dto.request.BookCreationRequest;
 import init.upinmcse.library_management.dto.request.BorrowBookRequest;
 import init.upinmcse.library_management.dto.request.SearchRequest;
 import init.upinmcse.library_management.dto.response.BookResponse;
+import init.upinmcse.library_management.dto.response.BorrowBookResponse;
 import init.upinmcse.library_management.service.BookService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -83,25 +84,58 @@ public class BookController {
     }
 
     @GetMapping("/search")
+    @Operation(summary = "...", description = "...")
     public ResponseEntity<ApiResponse<List<BookResponse>>> getBooksBySearch(@RequestBody SearchRequest request){
         return null;
     }
 
     @PostMapping("/borrow")
-    public ResponseEntity<ApiResponse<Void>> borrowBook(@RequestBody BorrowBookRequest request){
-        bookService.borrowBook(request);
-        ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
+    @Operation(summary = "...", description = "...")
+    public ResponseEntity<ApiResponse<BorrowBookResponse>> borrowBook(@RequestBody BorrowBookRequest request){
+        ApiResponse<BorrowBookResponse> apiResponse = ApiResponse.<BorrowBookResponse>builder()
                 .statusCode(HttpStatus.CREATED.value())
                 .message("Borrow Book Success")
+                .data(bookService.borrowBook(request))
                 .build();
         return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
     }
 
     @PostMapping("/return")
-    public ResponseEntity<ApiResponse<Void>> returnBook(@RequestBody BorrowBookRequest request){
-        bookService.returnBook(request);
-        ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
+    @Operation(summary = "...", description = "...")
+    public ResponseEntity<ApiResponse<BorrowBookResponse>> returnBook(@RequestBody BorrowBookRequest request){
+        ApiResponse<BorrowBookResponse> apiResponse = ApiResponse.<BorrowBookResponse>builder()
                 .message("Return Book Success")
+                .data(bookService.returnBook(request))
+                .build();
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @GetMapping("/borrow/list")
+    @PreAuthorize("hasRole('ADMIN')")
+    @Operation(summary = "...", description = "...")
+    public ResponseEntity<ApiResponse<List<BorrowBookResponse>>> borrowBook(){
+        ApiResponse<List<BorrowBookResponse>> apiResponse = ApiResponse.<List<BorrowBookResponse>>builder()
+                .message("Get All borrow book successful")
+                .data(bookService.getAllBorrowedBooks())
+                .build();
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @GetMapping("/borrow/list/{id}")
+    @Operation(summary = "...", description = "...")
+    public ResponseEntity<ApiResponse<List<BorrowBookResponse>>> borrowBookOfUser(@PathVariable("id") int userId){
+        ApiResponse<List<BorrowBookResponse>> apiResponse = ApiResponse.<List<BorrowBookResponse>>builder()
+                .message("Get All borrow book successful")
+                .data(bookService.getAllBorrowedBookOfUser(userId))
+                .build();
+        return ResponseEntity.ok(apiResponse);
+    }
+
+    @GetMapping("/borrow/list/overdue")
+    @Operation(summary = "xxx", description = "...")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<ApiResponse<List<BorrowBookResponse>>> borrowBookOverdue(){
+        ApiResponse<List<BorrowBookResponse>> apiResponse = ApiResponse.<List<BorrowBookResponse>>builder()
                 .build();
         return ResponseEntity.ok(apiResponse);
     }

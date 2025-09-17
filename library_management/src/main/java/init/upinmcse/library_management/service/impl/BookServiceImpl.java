@@ -2,11 +2,15 @@ package init.upinmcse.library_management.service.impl;
 
 import init.upinmcse.library_management.constant.BookStatus;
 import init.upinmcse.library_management.constant.BorrowBookStatus;
+import init.upinmcse.library_management.constant.BorrowQueueStatus;
+import init.upinmcse.library_management.constant.LateFeeStatus;
 import init.upinmcse.library_management.dto.request.BookCreationRequest;
 import init.upinmcse.library_management.dto.request.BorrowBookRequest;
 import init.upinmcse.library_management.dto.response.BookResponse;
+import init.upinmcse.library_management.dto.response.BorrowBookResponse;
 import init.upinmcse.library_management.exception.EntityNotFoundException;
 import init.upinmcse.library_management.mapper.BookMapper;
+import init.upinmcse.library_management.mapper.BorrowBookMapper;
 import init.upinmcse.library_management.model.*;
 import init.upinmcse.library_management.repository.*;
 import init.upinmcse.library_management.service.BookService;
@@ -16,6 +20,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -36,9 +41,12 @@ public class BookServiceImpl implements BookService {
     UserRepository userRepository;
     BorrowBookRepository borrowBookRepository;
     BorrowQueueRepository queueBookRepository;
+    LateFeeRepository lateFeeRepository;
+    BorrowBookMapper borrowBookMapper;
     BookMapper bookMapper;
 
     @Override
+    @Transactional
     public BookResponse addBook(BookCreationRequest request) {
         StringBuilder rawCode = new StringBuilder();
 
@@ -84,7 +92,7 @@ public class BookServiceImpl implements BookService {
      * */
     @Override
     @Transactional
-    public void borrowBook(BorrowBookRequest request) {
+    public BorrowBookResponse borrowBook(BorrowBookRequest request) {
         User user = this.userRepository.findById(request.getUserId())
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
@@ -99,7 +107,19 @@ public class BookServiceImpl implements BookService {
         }
 
         if(book.getAvailableCount() == 0){
-            throw new EntityNotFoundException("Book is available, you can choice join queue borrow book");
+            throw new EntityNotFoundException("Book is unavailable, you can choice join queue borrow book");
+        }
+
+        // check late fee
+        Optional<LateFee> lateFee = this.lateFeeRepository.findLateFeeByUserIdAndBookIdAndStatus(user.getId(), book.getId(), LateFeeStatus.UNPAID);
+        if(lateFee.isPresent()) {
+            throw new EntityNotFoundException("LateFee already exists");
+        }
+
+        // check wait list
+        Optional<BorrowQueue> borrowQueue = this.queueBookRepository.findBorrowQueueByBookIdAndUserId(book.getId(), user.getId(), BorrowQueueStatus.PENDING);
+        if(borrowQueue.isPresent()) {
+            throw new EntityNotFoundException("This Book pending borrow");
         }
 
         BorrowBook newBorrowBook = BorrowBook.builder()
@@ -108,16 +128,18 @@ public class BookServiceImpl implements BookService {
                 .dueDate(LocalDateTime.now().plusDays(7))
                 .status(BorrowBookStatus.BORROWED)
                 .build();
-        this.borrowBookRepository.save(newBorrowBook);
+        newBorrowBook = this.borrowBookRepository.save(newBorrowBook);
 
         book.setAvailableCount(book.getAvailableCount() - 1);
         book.setBorrowedCount(book.getBorrowedCount() + 1);
         this.bookRepository.save(book);
+
+        return this.borrowBookMapper.toBorrowBookResponse(newBorrowBook);
     }
 
     @Override
     @Transactional
-    public void returnBook(BorrowBookRequest request) {
+    public BorrowBookResponse returnBook(BorrowBookRequest request) {
         BorrowBook borrowBook = this.borrowBookRepository.findBorrowedBookByBookIdAndUserId(
                 request.getBookId(), request.getUserId(), BorrowBookStatus.BORROWED)
                 .orElseThrow(() -> new EntityNotFoundException("Borrow Book not found"));
@@ -131,10 +153,11 @@ public class BookServiceImpl implements BookService {
         borrowBook.setStatus(BorrowBookStatus.RETURNED);
 
         bookRepository.save(book);
-        borrowBookRepository.save(borrowBook);
+        borrowBook = borrowBookRepository.save(borrowBook);
 
         // push event message
 
+        return this.borrowBookMapper.toBorrowBookResponse(borrowBook);
     }
 
     @Override
@@ -147,6 +170,23 @@ public class BookServiceImpl implements BookService {
     @Override
     public List<BookResponse> getAllBooks() {
         return this.bookRepository.findAll().stream().map(bookMapper::toBookResponse).toList();
+    }
+
+    @Override
+    public List<BorrowBookResponse> getAllBorrowedBooks() {
+        return this.borrowBookRepository.findAll().stream().map(this.borrowBookMapper::toBorrowBookResponse).toList();
+    }
+
+    @Override
+    public List<BorrowBookResponse> getAllBorrowedBookOfUser(int userId) {
+        User user = this.userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found"));
+
+        List<BorrowBook> borrowBooks = this.borrowBookRepository.findAllByUserIdAndStatus(user.getId(), BorrowBookStatus.BORROWED);
+
+        log.info(String.valueOf(borrowBooks.size()));
+
+        return borrowBooks.stream().map(borrowBookMapper::toBorrowBookResponse).toList();
     }
 
     @Override
@@ -165,11 +205,7 @@ public class BookServiceImpl implements BookService {
     }
 
     @Override
-    public void addBorrowQueueBook(BorrowBookRequest request) {
-
-    }
-
-    @Override
+    @Transactional
     public void deleteBook(int bookId) {
         Book book = this.bookRepository.findById(bookId)
                 .orElseThrow(() -> new EntityNotFoundException("Book not found"));

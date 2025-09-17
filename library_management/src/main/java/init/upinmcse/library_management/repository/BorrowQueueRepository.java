@@ -16,14 +16,16 @@ public interface BorrowQueueRepository extends JpaRepository<BorrowQueue, Intege
     @Query("""
             SELECT bq
             FROM BorrowQueue bq
-            WHERE bq.book.id = :borrowerId
+            WHERE bq.book.id = :bookId
             AND bq.user.id = :userId
             AND bq.status = :status
             """)
-    Optional<BorrowQueue> findByBorrowQueueByBookIdAndUserId(
+    Optional<BorrowQueue> findBorrowQueueByBookIdAndUserId(
                         @Param("bookId") Integer bookId,
                         @Param("userId") Integer userId,
                         @Param("status") BorrowQueueStatus status);
+
+    Optional<BorrowQueue> findBorrowQueueByIdAndStatus(Integer borrowBookId, BorrowQueueStatus status);
 
     List<BorrowQueue> findAllByUserIdAndStatus(Integer userId, BorrowQueueStatus status);
 }
