@@ -326,31 +326,31 @@ CREATE TABLE late_fee (
 ## API design
 
 ### Authentication API
-- POST /api/v1/auth/register
+- `POST /api/v1/auth/register`
   - Tóm tắt: Đăng ký người dùng mới.
   - Mô tả: Tạo một tài khoản người dùng mới trong hệ thống. Chỉ người dùng có vai trò ADMIN mới được truy cập.
   - Request: email, fullName, age, gender
   - Response: bao gồm chi tiết người dùng và mật khẩu mặc định
 
-- POST /api/v1/auth/login
+- `POST /api/v1/auth/login`
   - Tóm tắt: Đăng nhập người dùng.
   - Mô tả: Xác thực người dùng bằng tên người dùng và mật khẩu, trả về access token và refresh token nếu thông tin xác thực hợp lệ.
   - Request Body: username, password
   - Response: token và thông tin người dùng
 
-- POST /api/v1/auth/refresh
+- `POST /api/v1/auth/refresh`
   - Tóm tắt: Làm mới token.
   - Mô tả: Tạo access token mới bằng refresh token hợp lệ. Kéo dài phiên mà không cần đăng nhập lại.
   - Request Body: refreshToken
   - Response: token mới
 
-- POST /api/v1/auth/logout
+- `POST /api/v1/auth/logout`
   - Tóm tắt: Đăng xuất người dùng.
   - Mô tả: Hủy phiên hiện tại và token của người dùng. Đảm bảo người dùng không thể truy cập tài nguyên được bảo vệ cho đến khi đăng nhập lại.
   - Response: void
 
 ### Book API
-- GET /api/v1/books
+- `GET /api/v1/books`
   - Tóm tắt: Lấy tất cả sách. 
   - Mô tả: Lấy danh sách phân trang của tất cả sách trong thư viện.
   - Parameters:
@@ -358,7 +358,7 @@ CREATE TABLE late_fee (
     - size (tùy chọn, mặc định: 10): Số bản ghi trên mỗi trang.
   - Response: danh sách book
 
-- POST /api/v1/books
+- `POST /api/v1/books`
   - Tóm tắt: Thêm sách mới.
   - Mô tả: Thêm một cuốn sách mới vào thư viện.
   - Request Body: 
@@ -369,21 +369,21 @@ CREATE TABLE late_fee (
     - availableCount
   - Response: thông tin sách mới
 
-- GET /api/v1/books/{id}
+- `GET /api/v1/books/{id}`
   - Tóm tắt: Lấy sách theo ID.
   - Mô tả: Lấy chi tiết của một cuốn sách cụ thể.
   - Parameters:
     - id: ID của sách.
   - Response: thông tin của sách
 
-- DELETE /api/v1/books/{id}
+- `DELETE /api/v1/books/{id}`
   - Tóm tắt: Xóa sách theo ID.
   - Mô tả: Xóa mềm một cuốn sách khỏi thư viện.
   - Parameters:
     - id: ID của sách. 
   - Response: void
 
-- GET /api/v1/books/search
+- `GET /api/v1/books/search`
   - Tóm tắt: Tìm kiếm sách.
   - Mô tả: Tìm kiếm sách dựa trên các tiêu chí như tiêu đề, tác giả. Trả về danh sách sách phù hợp.
   - Parameters:
@@ -392,7 +392,7 @@ CREATE TABLE late_fee (
   - Request Body: keyword
   - Response: Danh sách thông tin các cuốn sách
 
-- GET /api/v1/books/genre/{name}
+- `GET /api/v1/books/genre/{name}`
   - Tóm tắt: Lấy sách theo thể loại.
   - Mô tả: Lấy danh sách phân trang của tất cả sách theo thể loại.
   - Parameters:
@@ -401,7 +401,7 @@ CREATE TABLE late_fee (
     - size (tùy chọn, mặc định: 10): Số bản ghi trên mỗi trang.
   - Response: Danh sách thông tin các cuốn sách
 
-- GET /api/v1/books/author/{name}
+- `GET /api/v1/books/author/{name}`
   - Tóm tắt: Lấy sách theo tác giả.
   - Mô tả: Lấy danh sách phân trang của tất cả sách theo tác giả.
   - Parameters:
@@ -411,19 +411,19 @@ CREATE TABLE late_fee (
 - Response: Danh sách thông tin các cuốn sách
 
 ### Borrow Book API
-- POST /api/v1/borrow
+- `POST /api/v1/borrow`
   - Tóm tắt: Mượn sách.
   - Mô tả: Cho phép người dùng mượn một cuốn sách từ thư viện. Tạo bản ghi mượn mới và giảm số lượng sách có sẵn.
   - Request Body: userId, bookId, duration
   - Response: Thông tin mượn sách
 
-- POST /api/v1/borrow/return
+- `POST /api/v1/borrow/return`
   - Tóm tắt: Trả sách đã mượn.
   - Mô tả: Cho phép người dùng trả lại sách đã mượn trước đó. Cập nhật bản ghi mượn và tăng số lượng sách có sẵn.
   - Request Body: BorrowBookRequest (userId, bookId).
   - Response: Thông tin trả sách
 
-- GET /api/v1/borrow/list/user/{id}
+- `GET /api/v1/borrow/list/user/{id}`
   - Tóm tắt: Lấy bản ghi mượn của người dùng.
   - Mô tả: Lấy danh sách phân trang của tất cả sách được mượn bởi một người dùng cụ thể (ADMIN hoặc chính người dùng).
   - Parameters:
@@ -432,7 +432,7 @@ CREATE TABLE late_fee (
     - size (tùy chọn, mặc định: 10): Số bản ghi trên mỗi trang.
   - Response: Danh sách mượn sách của user.
 
-- GET /api/v1/borrow/list/overdue
+- `GET /api/v1/borrow/list/overdue`
   - Tóm tắt: Lấy bản ghi mượn quá hạn.
   - Mô tả: Lấy danh sách phân trang của tất cả bản ghi mượn quá hạn (chưa trả đúng hạn) (ADMIN chỉ).
   - Parameters:
@@ -440,7 +440,7 @@ CREATE TABLE late_fee (
     - size (tùy chọn, mặc định: 10): Số bản ghi trên mỗi trang.
   - Response: Danh sách các lượt đang mượn sách bị quá hạn
 
-- GET /api/v1/borrow/list/book/{id}
+- `GET /api/v1/borrow/list/book/{id}`
   - Tóm tắt: Lấy bản ghi mượn của một sách.
   - Mô tả: Lấy danh sách phân trang của tất cả bản ghi mượn cho một cuốn sách cụ thể (ADMIN chỉ).
   - Parameters:
@@ -449,7 +449,7 @@ CREATE TABLE late_fee (
     - size (tùy chọn, mặc định: 10): Số bản ghi trên mỗi trang.
   - Response: Danh sách mượn sách của theo sách
 
-- GET /api/v1/borrow/list
+- `GET /api/v1/borrow/list`
   - Tóm tắt: Lấy tất cả lượt mượn sách.
   - Mô tả: Lấy danh sách phân trang của tất cả bản ghi mượn trong hệ thống (ADMIN chỉ).
   - Parameters:
@@ -458,7 +458,7 @@ CREATE TABLE late_fee (
   - Response: Danh sách mượn sách.
 
 ### Book Queue APIs
-- POST /api/v1/book-queue
+- `POST /api/v1/book-queue`
   - Tóm tắt: Tham gia danh sách chờ.
   - Mô tả: Thêm người dùng hiện tại vào danh sách chờ cho một cuốn sách cụ thể (ADMIN hoặc chính người dùng).
   - Request Body: 
@@ -467,7 +467,7 @@ CREATE TABLE late_fee (
     - duration
   - Response: Thông tin tham gia hàng chờ
 
-- DELETE /api/v1/book-queue
+- `DELETE /api/v1/book-queue`
   - Tóm tắt: Hủy danh sách chờ.
   - Mô tả: Hủy yêu cầu danh sách chờ cho một cuốn sách cụ thể (ADMIN hoặc người dùng đã tạo yêu cầu).
   - Request Body: 
@@ -475,7 +475,7 @@ CREATE TABLE late_fee (
     - userId
   - Response: void
 
-- GET /api/v1/book-queue/user/{id}
+- `GET /api/v1/book-queue/user/{id}`
   - Tóm tắt: Lấy danh sách chờ của người dùng.
   - Mô tả: Lấy danh sách phân trang của các sách mà người dùng được chỉ định đang chờ (ADMIN hoặc chính người dùng).
   - Parameters:
@@ -484,7 +484,7 @@ CREATE TABLE late_fee (
     - size (tùy chọn, mặc định: 10): Số bản ghi trên mỗi trang.
   - Response: Danh sách thông tin chờ của người dùng.
 
-- GET /api/v1/book-queue/book/{id}
+- `GET /api/v1/book-queue/book/{id}`
   - Tóm tắt: Lấy danh sách chờ của một cuốn sách.
   - Mô tả: Lấy danh sách phân trang của người dùng đang chờ một cuốn sách cụ thể (ADMIN chỉ).
   - Parameters:
@@ -495,7 +495,7 @@ CREATE TABLE late_fee (
 
 ### Late Fee API
 
-- GET /api/v1/late-fee
+- `GET /api/v1/late-fee`
   - Tóm tắt: Lấy tất cả phí trễ hạn.
   - Mô tả: Lấy danh sách phân trang của tất cả bản ghi phí trễ hạn trong hệ thống (ADMIN chỉ).
   - Parameters:
@@ -503,13 +503,13 @@ CREATE TABLE late_fee (
     - size (tùy chọn, mặc định: 10): Số bản ghi trên mỗi trang.
   - Response: Danh sách các phiếu phí trễ hạn.
 
-- POST /api/v1/late-fee
+- `POST /api/v1/late-fee`
   - Tóm tắt: Tạo bản ghi phí trễ hạn.
   - Mô tả: Tạo bản ghi phí trễ hạn mới cho người dùng trả sách sau hạn chót (ADMIN chỉ).
   - Request Body: LateFeeCreationRequest (userId, bookId, fee, description).
   - Response: Thông tin phí trễ hạn.
 
-- GET /api/v1/late-fee/{id}
+- `GET /api/v1/late-fee/{id}`
   - Tóm tắt: Lấy phí trễ hạn của người dùng. 
   - Mô tả: Lấy danh sách phân trang của bản ghi phí trễ hạn cho một người dùng cụ thể (ADMIN hoặc chính người dùng).
   - Parameters:
@@ -518,7 +518,7 @@ CREATE TABLE late_fee (
     - size (tùy chọn, mặc định: 10): Số bản ghi trên mỗi trang.
   - Response: Danh sách thông tin phí trễ hạn của người dùng.
 
-- PATCH /api/v1/late-fee/{id}
+- `PATCH /api/v1/late-fee/{id}`
   - Tóm tắt: Đánh dấu phí trễ hạn là đã thanh toán.
   - Mô tả: Cập nhật bản ghi phí trễ hạn để đánh dấu là đã thanh toán (ADMIN chỉ).
   - Parameters:
@@ -527,30 +527,29 @@ CREATE TABLE late_fee (
 
 ### User APIs
 
-- GET /api/v1/user/{id}
+- `GET /api/v1/user/{id}`
   - Tóm tắt: Lấy thông tin người dùng.
   - Mô tả: Lấy thông tin hồ sơ của một người dùng cụ thể theo ID người dùng (ADMIN hoặc chính người dùng).
   - Parameters:
     - id (bắt buộc): ID của người dùng.
   - Response: ApiResponseUserResponse.
 
-- PATCH /api/v1/user/{id}
+- `PATCH /api/v1/user/{id}`
   - Tóm tắt: Cập nhật thông tin người dùng.
   - Mô tả: Cập nhật chi tiết hồ sơ của một người dùng cụ thể theo ID người dùng (ADMIN hoặc chính người dùng).
   - Parameters:
     - id (bắt buộc): ID của người dùng.
   - Response: ApiResponseVoid.
 
-
 ## Security consideration
 
 ### 1. Xác thực và Phân quyền
 - Tất cả người dùng phải đăng nhập bằng tên đăng nhập và mật khẩu hợp lệ.
 - Mật khẩu phải được băm (hash) và thêm muối (salt) trước khi lưu trữ (sử dụng bcrypt).
-- Cơ chế **Phân quyền theo vai trò (RBAC)** phải được áp dụng:
+- Cơ chế **Phân quyền theo vai trò (RBAC)** được áp dụng:
     - **Người dùng (User)** có thể duyệt catalog, mượn/trả sách, quản lý tài khoản cá nhân và tham gia danh sách chờ.
     - **Quản trị viên (Admin)** có thể quản lý tài khoản người dùng, phí phạt, danh sách chờ và xem báo cáo.
-- Token phải hết hạn sau 1 ngày không hoạt động.
+- Token phải hết hạn sau 1 khoảng thời gian không hoạt động.
 - Quyền truy cập các chức năng quản trị phải được giới hạn cho tài khoản có vai trò `ADMIN`.
 
 - Luồng login
