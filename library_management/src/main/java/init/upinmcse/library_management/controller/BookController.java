@@ -106,7 +106,11 @@ public class BookController {
     }
 
     @GetMapping("/search")
-    @Operation(summary = "...", description = "...")
+    @Operation(
+            summary = "Search books",
+            description = "Search for books based on given criteria such as title, author. "
+                    + "Returns a list of matching books."
+    )
     public ResponseEntity<ApiResponse<List<BookResponse>>> getBooksBySearch(@RequestBody SearchRequest request){
         return null;
     }

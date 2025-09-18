@@ -23,7 +23,8 @@
 - Actor: User
 - Luồng chính:
   - User nhập từ khóa tìm kiếm.
-  - Hệ thống hiển thị kết quả theo tên/tác giả/thể loại.
+  - Hệ thống hiển thị danh sách kết quả phù hợp.
+  - User chọn cách sắp xếp kết quả theo một tiêu chí (ví dụ: tên sách A–Z/Z–A, năm xuất bản)
 - Luồng ngoại lệ: Không có kết quả → hiển thị thông báo.
 - Hậu điều kiện: User thấy danh sách kết quả phù hợp.
 
@@ -32,7 +33,7 @@
 - Actor: User, Admin
 - Luồng chính:
   - User chọn một cuốn sách.
-  - Hệ thống hiển thị chi tiết (tóm tắt, tác giả, tình trạng, thể loại).
+  - Hệ thống hiển thị chi tiết thông tin cuốn sách
 - Hậu điều kiện: User nắm thông tin chi tiết cuốn sách.
 
 #### 2.4 Borrow Book
@@ -45,12 +46,13 @@
 - Luồng chính:
   - User chọn “Borrow”.
   - Hệ thống kiểm tra điều kiện.
-  - Hệ thống ghi nhận việc mượn, cập nhật trạng thái sách → BORROWED.
+  - Hệ thống ghi nhận việc mượn, cập nhật trạng thái sách.
   - Hệ thống hiển thị thông tin mượn sách bao gồm ngày đến hạn trả.
 - Luồng ngoại lệ:
   - Có phí phạt chưa thanh toán → từ chối.
   - Sách hết → gợi ý tham gia Waiting List.
 - Hậu điều kiện: User mượn thành công sách.
+
 
 #### 2.5 View Borrowed Books
 - Mục tiêu: Xem danh sách sách đang mượn của user.
@@ -158,9 +160,12 @@
   - Hệ thống hiển thị danh sách sách quá hạn và user liên quan.
 - Hậu điều kiện: Admin biết tình trạng nợ sách.
 
-### 3. Process Flow / Activity Diagram
+### 3. Use Case Diagram
 
-### 4. Business Rules
+### 4. Sequence Diagram
+
+
+### 5. Business Rules
 - BR-01: Một user chỉ được mượn tối đa 5 cuốn sách cùng lúc.
 - BR-02: Phí phạt được tính = số ngày trễ × 5.000 VNĐ.
 - BR-03: User có late fee chưa trả → không được mượn thêm sách.
@@ -285,17 +290,231 @@ CREATE TABLE late_fee (
 
 ```
 
+## API design
+
+### Authentication API
+- POST /api/v1/auth/register
+  - Tóm tắt: Đăng ký người dùng mới.
+  - Mô tả: Tạo một tài khoản người dùng mới trong hệ thống. Chỉ người dùng có vai trò ADMIN mới được truy cập.
+  - Request: email, fullName, age, gender
+  - Response: bao gồm chi tiết người dùng và mật khẩu mặc định
+
+- POST /api/v1/auth/login
+  - Tóm tắt: Đăng nhập người dùng.
+  - Mô tả: Xác thực người dùng bằng tên người dùng và mật khẩu, trả về access token và refresh token nếu thông tin xác thực hợp lệ.
+  - Request Body: username, password
+  - Response: token và thông tin người dùng
+
+- POST /api/v1/auth/refresh
+  - Tóm tắt: Làm mới token.
+  - Mô tả: Tạo access token mới bằng refresh token hợp lệ. Kéo dài phiên mà không cần đăng nhập lại.
+  - Request Body: refreshToken
+  - Response: token mới
+
+- POST /api/v1/auth/logout
+  - Tóm tắt: Đăng xuất người dùng.
+  - Mô tả: Hủy phiên hiện tại và token của người dùng. Đảm bảo người dùng không thể truy cập tài nguyên được bảo vệ cho đến khi đăng nhập lại.
+  - Response: void
+
+### Book API
+- GET /api/v1/books
+  - Tóm tắt: Lấy tất cả sách. 
+  - Mô tả: Lấy danh sách phân trang của tất cả sách trong thư viện.
+  - Parameters:
+    - page (tùy chọn, mặc định: 1): Số trang.
+    - size (tùy chọn, mặc định: 10): Số bản ghi trên mỗi trang.
+  - Response: danh sách book
+
+- POST /api/v1/books
+  - Tóm tắt: Thêm sách mới.
+  - Mô tả: Thêm một cuốn sách mới vào thư viện.
+  - Request Body: 
+    - title
+    - authorIds
+    - genreIds
+    - publishYear
+    - availableCount
+  - Response: thông tin sách mới
+
+- GET /api/v1/books/{id}
+  - Tóm tắt: Lấy sách theo ID.
+  - Mô tả: Lấy chi tiết của một cuốn sách cụ thể.
+  - Parameters:
+    - id: ID của sách.
+  - Response: thông tin của sách
+
+- DELETE /api/v1/books/{id}
+  - Tóm tắt: Xóa sách theo ID.
+  - Mô tả: Xóa mềm một cuốn sách khỏi thư viện.
+  - Parameters:
+    - id: ID của sách. 
+  - Response: void
+
+- GET /api/v1/books/search
+  - Tóm tắt: Tìm kiếm sách.
+  - Mô tả: Tìm kiếm sách dựa trên các tiêu chí như tiêu đề, tác giả. Trả về danh sách sách phù hợp.
+  - Parameters:
+    - page (tùy chọn, mặc định: 1): Số trang.
+    - size (tùy chọn, mặc định: 10): Số bản ghi trên mỗi trang.
+  - Request Body: keyword
+  - Response: Danh sách thông tin các cuốn sách
+
+- GET /api/v1/books/genre/{name}
+  - Tóm tắt: Lấy sách theo thể loại.
+  - Mô tả: Lấy danh sách phân trang của tất cả sách theo thể loại.
+  - Parameters:
+    - name (bắt buộc): Tên thể loại.
+    - page (tùy chọn, mặc định: 1): Số trang.
+    - size (tùy chọn, mặc định: 10): Số bản ghi trên mỗi trang.
+  - Response: Danh sách thông tin các cuốn sách
+
+- GET /api/v1/books/author/{name}
+  - Tóm tắt: Lấy sách theo tác giả.
+  - Mô tả: Lấy danh sách phân trang của tất cả sách theo tác giả.
+  - Parameters:
+    - name (bắt buộc): Tên tác giả.
+    - page (tùy chọn, mặc định: 1): Số trang.
+    - size (tùy chọn, mặc định: 10): Số bản ghi trên mỗi trang.
+- Response: Danh sách thông tin các cuốn sách
+
+### Borrow Book API
+- POST /api/v1/borrow
+  - Tóm tắt: Mượn sách.
+  - Mô tả: Cho phép người dùng mượn một cuốn sách từ thư viện. Tạo bản ghi mượn mới và giảm số lượng sách có sẵn.
+  - Request Body: userId, bookId, duration
+  - Response: Thông tin mượn sách
+
+- POST /api/v1/borrow/return
+  - Tóm tắt: Trả sách đã mượn.
+  - Mô tả: Cho phép người dùng trả lại sách đã mượn trước đó. Cập nhật bản ghi mượn và tăng số lượng sách có sẵn.
+  - Request Body: BorrowBookRequest (userId, bookId).
+  - Response: Thông tin trả sách
+
+- GET /api/v1/borrow/list/user/{id}
+  - Tóm tắt: Lấy bản ghi mượn của người dùng.
+  - Mô tả: Lấy danh sách phân trang của tất cả sách được mượn bởi một người dùng cụ thể (ADMIN hoặc chính người dùng).
+  - Parameters:
+    - id (bắt buộc): ID của người dùng.
+    - page (tùy chọn, mặc định: 1): Số trang.
+    - size (tùy chọn, mặc định: 10): Số bản ghi trên mỗi trang.
+  - Response: Danh sách mượn sách của user.
+
+- GET /api/v1/borrow/list/overdue
+  - Tóm tắt: Lấy bản ghi mượn quá hạn.
+  - Mô tả: Lấy danh sách phân trang của tất cả bản ghi mượn quá hạn (chưa trả đúng hạn) (ADMIN chỉ).
+  - Parameters:
+    - page (tùy chọn, mặc định: 1): Số trang.
+    - size (tùy chọn, mặc định: 10): Số bản ghi trên mỗi trang.
+  - Response: Danh sách các lượt đang mượn sách bị quá hạn
+
+- GET /api/v1/borrow/list/book/{id}
+  - Tóm tắt: Lấy bản ghi mượn của một sách.
+  - Mô tả: Lấy danh sách phân trang của tất cả bản ghi mượn cho một cuốn sách cụ thể (ADMIN chỉ).
+  - Parameters:
+    - id (bắt buộc): ID của sách.
+    - page (tùy chọn, mặc định: 1): Số trang.
+    - size (tùy chọn, mặc định: 10): Số bản ghi trên mỗi trang.
+  - Response: Danh sách mượn sách của theo sách
+
+- GET /api/v1/borrow/list
+  - Tóm tắt: Lấy tất cả lượt mượn sách.
+  - Mô tả: Lấy danh sách phân trang của tất cả bản ghi mượn trong hệ thống (ADMIN chỉ).
+  - Parameters:
+    - page (tùy chọn, mặc định: 1): Số trang.
+    - size (tùy chọn, mặc định: 10): Số bản ghi trên mỗi trang.
+  - Response: Danh sách mượn sách.
+
+### Book Queue APIs
+- POST /api/v1/book-queue
+  - Tóm tắt: Tham gia danh sách chờ.
+  - Mô tả: Thêm người dùng hiện tại vào danh sách chờ cho một cuốn sách cụ thể (ADMIN hoặc chính người dùng).
+  - Request Body: 
+    - bookId 
+    - userId
+    - duration
+  - Response: Thông tin tham gia hàng chờ
+
+- DELETE /api/v1/book-queue
+  - Tóm tắt: Hủy danh sách chờ.
+  - Mô tả: Hủy yêu cầu danh sách chờ cho một cuốn sách cụ thể (ADMIN hoặc người dùng đã tạo yêu cầu).
+  - Request Body: 
+    - bookQueueId 
+    - userId
+  - Response: void
+
+- GET /api/v1/book-queue/user/{id}
+  - Tóm tắt: Lấy danh sách chờ của người dùng.
+  - Mô tả: Lấy danh sách phân trang của các sách mà người dùng được chỉ định đang chờ (ADMIN hoặc chính người dùng).
+  - Parameters:
+    - id (bắt buộc): ID của người dùng. 
+    - page (tùy chọn, mặc định: 1): Số trang.
+    - size (tùy chọn, mặc định: 10): Số bản ghi trên mỗi trang.
+  - Response: Danh sách thông tin chờ của người dùng.
+
+- GET /api/v1/book-queue/book/{id}
+  - Tóm tắt: Lấy danh sách chờ của một cuốn sách.
+  - Mô tả: Lấy danh sách phân trang của người dùng đang chờ một cuốn sách cụ thể (ADMIN chỉ).
+  - Parameters:
+    - id (bắt buộc): ID của sách.
+    - page (tùy chọn, mặc định: 1): Số trang.
+    - size (tùy chọn, mặc định: 10): Số bản ghi trên mỗi trang.
+  - Response: Danh sách thông tin chờ của một cuốn sách.
+
+### Late Fee API
+
+- GET /api/v1/late-fee
+  - Tóm tắt: Lấy tất cả phí trễ hạn.
+  - Mô tả: Lấy danh sách phân trang của tất cả bản ghi phí trễ hạn trong hệ thống (ADMIN chỉ).
+  - Parameters:
+    - page (tùy chọn, mặc định: 1): Số trang.
+    - size (tùy chọn, mặc định: 10): Số bản ghi trên mỗi trang.
+  - Response: Danh sách các phiếu phí trễ hạn.
+
+- POST /api/v1/late-fee
+  - Tóm tắt: Tạo bản ghi phí trễ hạn.
+  - Mô tả: Tạo bản ghi phí trễ hạn mới cho người dùng trả sách sau hạn chót (ADMIN chỉ).
+  - Request Body: LateFeeCreationRequest (userId, bookId, fee, description).
+  - Response: Thông tin phí trễ hạn.
+
+- GET /api/v1/late-fee/{id}
+  - Tóm tắt: Lấy phí trễ hạn của người dùng. 
+  - Mô tả: Lấy danh sách phân trang của bản ghi phí trễ hạn cho một người dùng cụ thể (ADMIN hoặc chính người dùng).
+  - Parameters:
+    - id (bắt buộc): ID của người dùng. 
+    - page (tùy chọn, mặc định: 1): Số trang.
+    - size (tùy chọn, mặc định: 10): Số bản ghi trên mỗi trang.
+  - Response: Danh sách thông tin phí trễ hạn của người dùng.
+
+- PATCH /api/v1/late-fee/{id}
+  - Tóm tắt: Đánh dấu phí trễ hạn là đã thanh toán.
+  - Mô tả: Cập nhật bản ghi phí trễ hạn để đánh dấu là đã thanh toán (ADMIN chỉ).
+  - Parameters:
+    - id (bắt buộc): ID của phí trễ hạn. 
+  - Response: Thông tin thanh toán.
+
+
 ## Security consideration
 
 ### 1. Xác thực và Phân quyền
 - Tất cả người dùng phải đăng nhập bằng tên đăng nhập và mật khẩu hợp lệ.
-- Mật khẩu phải được băm (hash) và thêm muối (salt) trước khi lưu trữ (ví dụ: sử dụng bcrypt).
+- Mật khẩu phải được băm (hash) và thêm muối (salt) trước khi lưu trữ (sử dụng bcrypt).
 - Cơ chế **Phân quyền theo vai trò (RBAC)** phải được áp dụng:
     - **Người dùng (User)** có thể duyệt catalog, mượn/trả sách, quản lý tài khoản cá nhân và tham gia danh sách chờ.
     - **Quản trị viên (Admin)** có thể quản lý tài khoản người dùng, phí phạt, danh sách chờ và xem báo cáo.
 - Token phải hết hạn sau 1 ngày không hoạt động.
 - Quyền truy cập các chức năng quản trị phải được giới hạn cho tài khoản có vai trò `ADMIN`.
 
+- Luồng login
+
+<img src="./docs/login-lb.drawio.png">
+
+- Luồng logout
+
+<img src="./docs/logout-lb.drawio.png">
+
+- Luồng refresh-token
+
+<img src="./docs/refresh-lb.drawio.png">
 
 ### 2. Bảo mật Dữ liệu
 - Dữ liệu nhạy cảm như mật khẩu, giao dịch thanh toán và thông tin cá nhân phải được mã hóa khi truyền và khi lưu trữ.

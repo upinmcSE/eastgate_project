@@ -38,7 +38,11 @@ public class AuthenticationController {
     private long REFRESH_EXPIRY_SECONDS;
 
     @PostMapping("/login")
-    @Operation(summary = "Login")
+    @Operation(
+            summary = "Login",
+            description = "Authenticate user with username and password. "
+                    + "Returns access token and refresh token if credentials are valid."
+    )
     public ResponseEntity<ApiResponse<AuthenticationResponse>> login(@Valid @RequestBody LoginRequest request) {
         AuthenticationResponse response = authenticationService.login(request);
         ApiResponse<AuthenticationResponse> apiResponse = ApiResponse.<AuthenticationResponse>builder()
@@ -59,7 +63,11 @@ public class AuthenticationController {
     }
 
     @PostMapping("/register")
-    @Operation(summary = "Register new User")
+    @Operation(
+            summary = "Register new User",
+            description = "Create a new user account in the system. "
+                    + "Only accessible to users with ADMIN role."
+    )
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<UserCreationResponse>> register(@Valid @RequestBody UserCreationRequest request) {
         ApiResponse<UserCreationResponse> apiResponse = ApiResponse.<UserCreationResponse>builder()
@@ -71,7 +79,11 @@ public class AuthenticationController {
     }
 
     @PostMapping("/refresh")
-    @Operation(summary = "Refresh token")
+    @Operation(
+            summary = "Refresh token",
+            description = "Generate a new access token using a valid refresh token. "
+                    + "Extends the session without requiring login again."
+    )
     public ResponseEntity<ApiResponse<AuthenticationResponse>> refresh(@Valid @RequestBody RefreshTokenRequest request) throws ParseException, JOSEException {
         ApiResponse<AuthenticationResponse> apiResponse = ApiResponse.<AuthenticationResponse>builder()
                 .message("Refresh successful")
@@ -82,7 +94,11 @@ public class AuthenticationController {
     }
 
     @PostMapping("/logout")
-    @Operation(summary = "Logout User")
+    @Operation(
+            summary = "Logout User",
+            description = "Invalidate the current user session and tokens. "
+                    + "Ensures the user cannot access protected resources until they login again."
+    )
     public ResponseEntity<ApiResponse<Void>> logout() {
         authenticationService.logout();
         ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()

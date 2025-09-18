@@ -26,8 +26,16 @@ public class BorrowBookController {
     BorrowBookService borrowBookService;
 
     @PostMapping()
-    @Operation(summary = "...", description = "...")
-    public ResponseEntity<ApiResponse<BorrowBookResponse>> borrowBook(@RequestBody BorrowBookRequest request){
+    @Operation(
+            summary = "Borrow a book",
+            description = "Allows a user to borrow a book from the library. "
+                    + "Creates a new borrow record and decreases the available quantity of the book."
+    )
+    @PreAuthorize("hasRole('')")
+    public ResponseEntity<ApiResponse<BorrowBookResponse>> borrowBook(
+            @RequestBody BorrowBookRequest request,
+            @AuthenticationPrincipal Jwt principal
+    ){
         ApiResponse<BorrowBookResponse> apiResponse = ApiResponse.<BorrowBookResponse>builder()
                 .statusCode(HttpStatus.CREATED.value())
                 .message("Borrow Book Success")
@@ -37,8 +45,16 @@ public class BorrowBookController {
     }
 
     @PostMapping("/return")
-    @Operation(summary = "...", description = "...")
-    public ResponseEntity<ApiResponse<BorrowBookResponse>> returnBook(@RequestBody BorrowBookRequest request){
+    @Operation(
+            summary = "Return a borrowed book",
+            description = "Allows a user to return a previously borrowed book. "
+                    + "Updates the borrow record and increases the available quantity of the book."
+    )
+    @PreAuthorize("hasRole('')")
+    public ResponseEntity<ApiResponse<BorrowBookResponse>> returnBook(
+            @RequestBody BorrowBookRequest request,
+            @AuthenticationPrincipal Jwt principal
+    ){
         ApiResponse<BorrowBookResponse> apiResponse = ApiResponse.<BorrowBookResponse>builder()
                 .message("Return Book Success")
                 .data(borrowBookService.returnBook(request))
@@ -46,9 +62,13 @@ public class BorrowBookController {
         return ResponseEntity.ok(apiResponse);
     }
 
-    @GetMapping("/borrow/list")
+    @GetMapping("/list")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "...", description = "...")
+    @Operation(
+            summary = "Get all borrowed books",
+            description = "Retrieve a paginated list of all borrow records in the system. "
+                    + "Accessible only by ADMIN."
+    )
     public ResponseEntity<ApiResponse<PageResponse<BorrowBookResponse>>> borrowBook(
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "10") int size
@@ -62,7 +82,11 @@ public class BorrowBookController {
 
     @GetMapping("/list/book/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "...", description = "...")
+    @Operation(
+            summary = "Get borrow records of a book",
+            description = "Retrieve a paginated list of all borrow records for the specified book. "
+                    + "Accessible only by ADMIN."
+    )
     public ResponseEntity<ApiResponse<PageResponse<BorrowBookResponse>>> borrowBookOfBook(
             @PathVariable("id") int bookId,
             @RequestParam(value = "page", defaultValue = "1") int page,
@@ -77,7 +101,11 @@ public class BorrowBookController {
 
     @GetMapping("/list/user/{id}")
     @PreAuthorize("hasRole('ADMIN') or #userId == #jwt.claims['userId'] ")
-    @Operation(summary = "...", description = "...")
+    @Operation(
+            summary = "Get borrow records of a user",
+            description = "Retrieve a paginated list of all books borrowed by a specific user. "
+                    + "Accessible by ADMIN or the user themselves."
+    )
     public ResponseEntity<ApiResponse<PageResponse<BorrowBookResponse>>> borrowBookOfUser(
             @PathVariable("id") int userId,
             @AuthenticationPrincipal Jwt jwt,
@@ -92,7 +120,11 @@ public class BorrowBookController {
     }
 
     @GetMapping("/list/overdue")
-    @Operation(summary = "xxx", description = "...")
+    @Operation(
+            summary = "Get overdue borrow records",
+            description = "Retrieve a paginated list of all overdue borrow records (books not returned on time). "
+                    + "Accessible only by ADMIN."
+    )
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<PageResponse<BorrowBookResponse>>> borrowBookOverdue(
             @RequestParam(value = "page", defaultValue = "1") int page,

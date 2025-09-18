@@ -28,7 +28,11 @@ public class LateFeeController {
 
     @PostMapping()
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "...", description = "...")
+    @Operation(
+            summary = "Create late fee record",
+            description = "Create a new late fee record for a user who returned a borrowed book after the due date. "
+                    + "Accessible only by ADMIN."
+    )
     public ResponseEntity<ApiResponse<LateFeeResponse>> createLateFee(@Valid @RequestBody LateFeeCreationRequest request){
         ApiResponse<LateFeeResponse> apiResponse = ApiResponse.<LateFeeResponse>builder()
                 .statusCode(HttpStatus.CREATED.value())
@@ -40,7 +44,11 @@ public class LateFeeController {
 
     @PatchMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "...", description = "...")
+    @Operation(
+            summary = "Mark late fee as paid",
+            description = "Update a late fee record to mark it as paid. "
+                    + "Accessible only by ADMIN."
+    )
     public ResponseEntity<ApiResponse<LateFeeResponse>> paidLateFee(
             @PathVariable("id") int lateFeeId){
         ApiResponse<LateFeeResponse> apiResponse = ApiResponse.<LateFeeResponse>builder()
@@ -52,7 +60,11 @@ public class LateFeeController {
 
     @GetMapping()
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "...", description = "...")
+    @Operation(
+            summary = "Get all late fees",
+            description = "Retrieve a paginated list of all late fee records in the system. "
+                    + "Accessible only by ADMIN."
+    )
     public ResponseEntity<ApiResponse<PageResponse<LateFeeResponse>>> getLateFees(
             @RequestParam(value = "page", defaultValue = "1") int page,
             @RequestParam(value = "size", defaultValue = "10") int size
@@ -66,7 +78,11 @@ public class LateFeeController {
 
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or #userId == #jwt.claims['userId']")
-    @Operation(summary = "...", description = "...")
+    @Operation(
+            summary = "Get late fees of a user",
+            description = "Retrieve a paginated list of late fee records for a specific user. "
+                    + "Accessible by ADMIN or the user themselves."
+    )
     public ResponseEntity<ApiResponse<PageResponse<LateFeeResponse>>> getLateFeeOfUser(
             @PathVariable("id") int userId,
             @AuthenticationPrincipal Jwt jwt,

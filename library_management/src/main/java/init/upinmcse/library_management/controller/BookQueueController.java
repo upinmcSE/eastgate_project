@@ -30,7 +30,11 @@ public class BookQueueController {
 
     @PostMapping()
     @PreAuthorize("hasRole('ADMIN') or #request.userId == #jwt.claims['userId'] ")
-    @Operation(summary = "Join wait list", description = "...")
+    @Operation(
+            summary = "Join wait list",
+            description = "Add the current user to the waiting list for a specific book. "
+                    + "Accessible by ADMIN or the user themselves."
+    )
     public ResponseEntity<ApiResponse<BorrowQueueResponse>> joinQueue(
             @Valid @RequestBody BorrowQueueRequest request,
             @AuthenticationPrincipal Jwt jwt
@@ -45,7 +49,11 @@ public class BookQueueController {
 
     @GetMapping("/user/{id}")
     @PreAuthorize("hasRole('ADMIN') or #userId == #jwt.claims['userId'] ")
-    @Operation(summary = "...", description = "...")
+    @Operation(
+            summary = "Get user's book queue",
+            description = "Retrieve the paginated list of books that the specified user is waiting for. "
+                    + "Accessible by ADMIN or the user themselves."
+    )
     public ResponseEntity<ApiResponse<PageResponse<BorrowQueueResponse>>> getQueueOfUser(
             @PathVariable("id") int userId,
             @AuthenticationPrincipal Jwt jwt,
@@ -61,7 +69,11 @@ public class BookQueueController {
 
     @GetMapping("/book/{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    @Operation(summary = "...", description = "...")
+    @Operation(
+            summary = "Get queue of a book",
+            description = "Retrieve the paginated list of users currently waiting for the specified book. "
+                    + "Accessible only by ADMIN."
+    )
     public ResponseEntity<ApiResponse<PageResponse<BorrowQueueResponse>>> getQueueOfBook(
             @PathVariable("id") int bookId,
             @RequestParam(value = "page", defaultValue = "1") int page,
@@ -76,7 +88,11 @@ public class BookQueueController {
 
     @DeleteMapping()
     @PreAuthorize("hasRole('ADMIN') or #request.userId == #jwt.claims['userId']")
-    @Operation(summary = "...", description = "...")
+    @Operation(
+            summary = "Cancel wait list",
+            description = "Cancel the waiting list request for a specific book. "
+                    + "Accessible by ADMIN or the user who created the request."
+    )
     public ResponseEntity<ApiResponse<Void>> cancelQueue(
             @RequestBody CancelQueueRequest request,
             @AuthenticationPrincipal Jwt jwt
