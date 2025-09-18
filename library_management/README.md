@@ -201,8 +201,8 @@
 
 ### 5. Business Rules
 - BR-01: Một user chỉ được mượn tối đa 5 cuốn sách cùng lúc.
-- BR-03: User có late fee chưa trả → không được mượn thêm sách.
-- BR-04: Waiting list hoạt động theo nguyên tắc FIFO (first come, first served).
+- BR-02: User có late fee chưa trả → không được mượn thêm sách.
+- BR-03: Waiting list hoạt động theo nguyên tắc FIFO (first come, first served).
 
 
 ## Data modeling and storage(ERD + sql)
