@@ -1,6 +1,7 @@
 package init.upinmcse.library_management.controller;
 
 import init.upinmcse.library_management.dto.ApiResponse;
+import init.upinmcse.library_management.dto.PageResponse;
 import init.upinmcse.library_management.dto.request.LateFeeCreationRequest;
 import init.upinmcse.library_management.dto.response.LateFeeResponse;
 import init.upinmcse.library_management.service.LateFeeService;
@@ -16,8 +17,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/late-fee")
@@ -42,7 +41,8 @@ public class LateFeeController {
     @PatchMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "...", description = "...")
-    public ResponseEntity<ApiResponse<LateFeeResponse>> paidLateFee(@PathVariable("id") int lateFeeId){
+    public ResponseEntity<ApiResponse<LateFeeResponse>> paidLateFee(
+            @PathVariable("id") int lateFeeId){
         ApiResponse<LateFeeResponse> apiResponse = ApiResponse.<LateFeeResponse>builder()
                 .message("Paid late fee successfully")
                 .data(lateFeeService.paidLateFee(lateFeeId))
@@ -53,10 +53,13 @@ public class LateFeeController {
     @GetMapping()
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "...", description = "...")
-    public ResponseEntity<ApiResponse<List<LateFeeResponse>>> getLateFees(){
-        ApiResponse<List<LateFeeResponse>> apiResponse = ApiResponse.<List<LateFeeResponse>>builder()
+    public ResponseEntity<ApiResponse<PageResponse<LateFeeResponse>>> getLateFees(
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size
+    ){
+        ApiResponse<PageResponse<LateFeeResponse>> apiResponse = ApiResponse.<PageResponse<LateFeeResponse>>builder()
                 .message("Get late fees successfully")
-                .data(lateFeeService.getLateFees())
+                .data(lateFeeService.getLateFees(page, size))
                 .build();
         return ResponseEntity.ok(apiResponse);
     }
@@ -64,13 +67,15 @@ public class LateFeeController {
     @GetMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or #userId == #jwt.claims['userId']")
     @Operation(summary = "...", description = "...")
-    public ResponseEntity<ApiResponse<List<LateFeeResponse>>> getLateFeeOfUser(
+    public ResponseEntity<ApiResponse<PageResponse<LateFeeResponse>>> getLateFeeOfUser(
             @PathVariable("id") int userId,
-            @AuthenticationPrincipal Jwt jwt
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size
     ){
-        ApiResponse<List<LateFeeResponse>> apiResponse = ApiResponse.<List<LateFeeResponse>>builder()
+        ApiResponse<PageResponse<LateFeeResponse>> apiResponse = ApiResponse.<PageResponse<LateFeeResponse>>builder()
                 .message("Get late fees of user successfully")
-                .data(lateFeeService.getLateFeeOfUser(userId))
+                .data(lateFeeService.getLateFeeOfUser(userId, page, size))
                 .build();
         return ResponseEntity.ok(apiResponse);
     }

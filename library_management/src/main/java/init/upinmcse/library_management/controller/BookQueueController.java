@@ -1,7 +1,9 @@
 package init.upinmcse.library_management.controller;
 
 import init.upinmcse.library_management.dto.ApiResponse;
+import init.upinmcse.library_management.dto.PageResponse;
 import init.upinmcse.library_management.dto.request.BorrowQueueRequest;
+import init.upinmcse.library_management.dto.request.CancelQueueRequest;
 import init.upinmcse.library_management.dto.response.BorrowQueueResponse;
 import init.upinmcse.library_management.service.BookQueueService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -16,8 +18,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/book-queue")
@@ -46,13 +46,15 @@ public class BookQueueController {
     @GetMapping("/user/{id}")
     @PreAuthorize("hasRole('ADMIN') or #userId == #jwt.claims['userId'] ")
     @Operation(summary = "...", description = "...")
-    public ResponseEntity<ApiResponse<List<BorrowQueueResponse>>> getQueueOfUser(
+    public ResponseEntity<ApiResponse<PageResponse<BorrowQueueResponse>>> getQueueOfUser(
             @PathVariable("id") int userId,
-            @AuthenticationPrincipal Jwt jwt
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size
     ) {
-        ApiResponse<List<BorrowQueueResponse>> apiResponse = ApiResponse.<List<BorrowQueueResponse>>builder()
+        ApiResponse<PageResponse<BorrowQueueResponse>> apiResponse = ApiResponse.<PageResponse<BorrowQueueResponse>>builder()
                 .message("Get list book-queue of you successful")
-                .data(bookQueueService.getBookQueueOfUser(userId))
+                .data(bookQueueService.getBookQueueOfUser(userId, page, size))
                 .build();
         return ResponseEntity.ok(apiResponse);
     }
@@ -60,18 +62,26 @@ public class BookQueueController {
     @GetMapping("/book/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "...", description = "...")
-    public ResponseEntity<ApiResponse<List<BorrowQueueResponse>>> getQueueOfBook(@PathVariable("id") int bookId) {
-        ApiResponse<List<BorrowQueueResponse>> apiResponse = ApiResponse.<List<BorrowQueueResponse>>builder()
+    public ResponseEntity<ApiResponse<PageResponse<BorrowQueueResponse>>> getQueueOfBook(
+            @PathVariable("id") int bookId,
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size
+    ) {
+        ApiResponse<PageResponse<BorrowQueueResponse>> apiResponse = ApiResponse.<PageResponse<BorrowQueueResponse>>builder()
                 .message("Get list book-queue of you successful")
-                .data(bookQueueService.getBookQueueOfBook(bookId))
+                .data(bookQueueService.getBookQueueOfBook(bookId, page, size))
                 .build();
         return ResponseEntity.ok(apiResponse);
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping()
+    @PreAuthorize("hasRole('ADMIN') or #request.userId == #jwt.claims['userId']")
     @Operation(summary = "...", description = "...")
-    public ResponseEntity<ApiResponse<Void>> cancelQueue(@PathVariable("id") int id) {
-        bookQueueService.cancelBookQueue(id);
+    public ResponseEntity<ApiResponse<Void>> cancelQueue(
+            @RequestBody CancelQueueRequest request,
+            @AuthenticationPrincipal Jwt jwt
+    ) {
+        bookQueueService.cancelBookQueue(request.getBookQueueId());
         ApiResponse<Void> apiResponse = ApiResponse.<Void>builder()
                 .message("Cancel book queue successful")
                 .build();

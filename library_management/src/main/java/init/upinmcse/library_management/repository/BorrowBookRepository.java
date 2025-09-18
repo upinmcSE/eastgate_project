@@ -2,6 +2,8 @@ package init.upinmcse.library_management.repository;
 
 import init.upinmcse.library_management.constant.BorrowBookStatus;
 import init.upinmcse.library_management.model.BorrowBook;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -26,9 +28,40 @@ public interface BorrowBookRepository extends JpaRepository<BorrowBook, Integer>
                                                            @Param("userId") Integer userId,
                                                            @Param("status")BorrowBookStatus status);
 
-    List<BorrowBook> findAllByUserIdAndStatus(Integer userId, BorrowBookStatus status);
+    Page<BorrowBook> findAllByUserId(
+            Integer userId,
+            Pageable pageable);
 
-    List<BorrowBook> findAllByBookIdAndStatus(Integer bookId, BorrowBookStatus status);
+    Page<BorrowBook> findAllByBookId(
+            Integer bookId,
+            Pageable pageable);
 
-    List<BorrowBook> findByStatusAndDueDateBefore(BorrowBookStatus status, LocalDateTime now);
+    Page<BorrowBook> findByStatusAndDueDateBefore(
+            BorrowBookStatus status,
+            LocalDateTime now,
+            Pageable pageable);
+
+    @Query("""
+            SELECT bb
+            FROM BorrowBook bb
+            WHERE bb.dueDate < CURRENT TIMESTAMP
+            AND bb.status = :status
+            AND NOT EXISTS (
+                      SELECT 1
+                      FROM LateFee lf
+                      WHERE lf.user = bb.user
+                        AND lf.book = bb.book
+                  )
+            """)
+    List<BorrowBook> findOverdueBorrowedWithoutLateFee(@Param("status") BorrowBookStatus status);
+
+    @Query("""
+        SELECT bb
+        FROM BorrowBook bb
+        WHERE bb.status = :status
+          AND bb.dueDate BETWEEN CURRENT_TIMESTAMP AND :limitDate
+        """)
+    List<BorrowBook> findBorrowedBooksDueInTwoDays(
+            @Param("status") BorrowBookStatus status,
+            @Param("limitDate") LocalDateTime limitDate);
 }

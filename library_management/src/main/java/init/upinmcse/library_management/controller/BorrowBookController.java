@@ -1,6 +1,7 @@
 package init.upinmcse.library_management.controller;
 
 import init.upinmcse.library_management.dto.ApiResponse;
+import init.upinmcse.library_management.dto.PageResponse;
 import init.upinmcse.library_management.dto.request.BorrowBookRequest;
 import init.upinmcse.library_management.dto.response.BorrowBookResponse;
 import init.upinmcse.library_management.service.BorrowBookService;
@@ -15,8 +16,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/v1/borrow")
@@ -50,10 +49,13 @@ public class BorrowBookController {
     @GetMapping("/borrow/list")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "...", description = "...")
-    public ResponseEntity<ApiResponse<List<BorrowBookResponse>>> borrowBook(){
-        ApiResponse<List<BorrowBookResponse>> apiResponse = ApiResponse.<List<BorrowBookResponse>>builder()
+    public ResponseEntity<ApiResponse<PageResponse<BorrowBookResponse>>> borrowBook(
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size
+    ){
+        ApiResponse<PageResponse<BorrowBookResponse>> apiResponse = ApiResponse.<PageResponse<BorrowBookResponse>>builder()
                 .message("Get All borrow book successful")
-                .data(borrowBookService.getAllBorrowedBooks())
+                .data(borrowBookService.getAllBorrowedBooks(page, size))
                 .build();
         return ResponseEntity.ok(apiResponse);
     }
@@ -61,10 +63,14 @@ public class BorrowBookController {
     @GetMapping("/list/book/{id}")
     @PreAuthorize("hasRole('ADMIN')")
     @Operation(summary = "...", description = "...")
-    public ResponseEntity<ApiResponse<List<BorrowBookResponse>>> borrowBookOfBook(@PathVariable("id") int bookId){
-        ApiResponse<List<BorrowBookResponse>> apiResponse = ApiResponse.<List<BorrowBookResponse>>builder()
+    public ResponseEntity<ApiResponse<PageResponse<BorrowBookResponse>>> borrowBookOfBook(
+            @PathVariable("id") int bookId,
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size
+    ){
+        ApiResponse<PageResponse<BorrowBookResponse>> apiResponse = ApiResponse.<PageResponse<BorrowBookResponse>>builder()
                 .message("Get All borrow book successful")
-                .data(borrowBookService.getAllBorrowedBookOfBook(bookId))
+                .data(borrowBookService.getAllBorrowedBookOfBook(bookId, page, size))
                 .build();
         return ResponseEntity.ok(apiResponse);
     }
@@ -72,13 +78,15 @@ public class BorrowBookController {
     @GetMapping("/list/user/{id}")
     @PreAuthorize("hasRole('ADMIN') or #userId == #jwt.claims['userId'] ")
     @Operation(summary = "...", description = "...")
-    public ResponseEntity<ApiResponse<List<BorrowBookResponse>>> borrowBookOfUser(
+    public ResponseEntity<ApiResponse<PageResponse<BorrowBookResponse>>> borrowBookOfUser(
             @PathVariable("id") int userId,
-            @AuthenticationPrincipal Jwt jwt
+            @AuthenticationPrincipal Jwt jwt,
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size
     ){
-        ApiResponse<List<BorrowBookResponse>> apiResponse = ApiResponse.<List<BorrowBookResponse>>builder()
+        ApiResponse<PageResponse<BorrowBookResponse>> apiResponse = ApiResponse.<PageResponse<BorrowBookResponse>>builder()
                 .message("Get All borrow book successful")
-                .data(borrowBookService.getAllBorrowedBookOfUser(userId))
+                .data(borrowBookService.getAllBorrowedBookOfUser(userId, page, size))
                 .build();
         return ResponseEntity.ok(apiResponse);
     }
@@ -86,10 +94,13 @@ public class BorrowBookController {
     @GetMapping("/list/overdue")
     @Operation(summary = "xxx", description = "...")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<List<BorrowBookResponse>>> borrowBookOverdue(){
-        ApiResponse<List<BorrowBookResponse>> apiResponse = ApiResponse.<List<BorrowBookResponse>>builder()
+    public ResponseEntity<ApiResponse<PageResponse<BorrowBookResponse>>> borrowBookOverdue(
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size
+    ){
+        ApiResponse<PageResponse<BorrowBookResponse>> apiResponse = ApiResponse.<PageResponse<BorrowBookResponse>>builder()
                 .message("Get All borrow book over due successful")
-                .data(borrowBookService.getAllBorrowedBookOverDue())
+                .data(borrowBookService.getAllBorrowedBookOverDue(page, size))
                 .build();
         return ResponseEntity.ok(apiResponse);
     }

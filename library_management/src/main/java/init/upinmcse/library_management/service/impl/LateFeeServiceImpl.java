@@ -2,14 +2,13 @@ package init.upinmcse.library_management.service.impl;
 
 import init.upinmcse.library_management.constant.BorrowBookStatus;
 import init.upinmcse.library_management.constant.LateFeeStatus;
+import init.upinmcse.library_management.dto.PageResponse;
 import init.upinmcse.library_management.dto.request.LateFeeCreationRequest;
 import init.upinmcse.library_management.dto.response.LateFeeResponse;
+import init.upinmcse.library_management.event.CreateLateFeeEvent;
 import init.upinmcse.library_management.exception.EntityNotFoundException;
 import init.upinmcse.library_management.mapper.LateFeeMapper;
-import init.upinmcse.library_management.model.Book;
-import init.upinmcse.library_management.model.BorrowBook;
-import init.upinmcse.library_management.model.LateFee;
-import init.upinmcse.library_management.model.User;
+import init.upinmcse.library_management.model.*;
 import init.upinmcse.library_management.repository.BookRepository;
 import init.upinmcse.library_management.repository.BorrowBookRepository;
 import init.upinmcse.library_management.repository.LateFeeRepository;
@@ -21,6 +20,11 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -37,6 +41,8 @@ public class LateFeeServiceImpl implements LateFeeService {
     BookRepository bookRepository;
     BorrowBookRepository borrowBookRepository;
     LateFeeMapper lateFeeMapper;
+
+    ApplicationEventPublisher eventPublisher;
 
     @Override
     @Transactional
@@ -68,9 +74,17 @@ public class LateFeeServiceImpl implements LateFeeService {
                 .status(LateFeeStatus.UNPAID)
                 .build();
 
-        // Option change fee
+        // Option change style calculate late fee
 
         newLateFee = this.lateFeeRepository.save(newLateFee);
+
+        // push event send mail cho patron
+        eventPublisher.publishEvent(CreateLateFeeEvent.builder()
+                        .email(user.getEmail())
+                        .bookName(book.getTitle())
+                        .description(newLateFee.getDescription())
+                        .fee(newLateFee.getFee())
+                .build());
 
         return this.lateFeeMapper.toLateFeeResponse(newLateFee);
     }
@@ -80,19 +94,44 @@ public class LateFeeServiceImpl implements LateFeeService {
         LateFee lateFee = this.lateFeeRepository.findById(lateFeeId)
                 .orElseThrow(() -> new EntityNotFoundException("LateFee Not Found"));
 
+        // call return book
+
         lateFee.setStatus(LateFeeStatus.PAID);
         this.lateFeeRepository.save(lateFee);
         return this.lateFeeMapper.toLateFeeResponse(lateFee);
     }
 
     @Override
-    public List<LateFeeResponse> getLateFees() {
-        return this.lateFeeRepository.findAll().stream().map(this.lateFeeMapper::toLateFeeResponse).toList();
+    public PageResponse<LateFeeResponse> getLateFees(int page, int size) {
+        Pageable pageable = buildPageable(page, size);
+        return toPageResponse(this.lateFeeRepository.findAll(pageable), page);
     }
 
     @Override
-    public List<LateFeeResponse> getLateFeeOfUser(int userId) {
-        List<LateFee> lateFees = this.lateFeeRepository.findLateFeeByUserId(userId);
-        return lateFees.stream().map(this.lateFeeMapper::toLateFeeResponse).toList();
+    public PageResponse<LateFeeResponse> getLateFeeOfUser(int userId, int page, int size) {
+        User user = this.userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User Not Found"));
+
+        Pageable pageable = buildPageable(page, size);
+        return toPageResponse(this.lateFeeRepository.findLateFeeByUserId(user.getId(), pageable), page);
+    }
+
+    private Pageable buildPageable(int page, int size) {
+        return PageRequest.of(page - 1, size, Sort.by("createdAt").descending());
+    }
+
+    private PageResponse<LateFeeResponse> toPageResponse(Page<LateFee> pageData, int page) {
+        List<LateFeeResponse> lateFeeList = pageData.getContent()
+                .stream()
+                .map(this.lateFeeMapper::toLateFeeResponse)
+                .toList();
+
+        return PageResponse.<LateFeeResponse>builder()
+                .currentPage(page)
+                .pageSize(pageData.getSize())
+                .totalPages(pageData.getTotalPages())
+                .totalRecords(pageData.getTotalElements())
+                .data(lateFeeList)
+                .build();
     }
 }

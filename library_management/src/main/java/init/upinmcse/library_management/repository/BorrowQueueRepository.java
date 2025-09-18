@@ -2,6 +2,8 @@ package init.upinmcse.library_management.repository;
 
 import init.upinmcse.library_management.constant.BorrowQueueStatus;
 import init.upinmcse.library_management.model.BorrowQueue;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -27,9 +29,15 @@ public interface BorrowQueueRepository extends JpaRepository<BorrowQueue, Intege
 
     Optional<BorrowQueue> findBorrowQueueByIdAndStatus(Integer borrowBookId, BorrowQueueStatus status);
 
-    List<BorrowQueue> findAllByUserIdAndStatus(Integer userId, BorrowQueueStatus status);
+    Page<BorrowQueue> findAllByUserIdAndStatus(
+            Integer userId,
+            BorrowQueueStatus status,
+            Pageable pageable);
 
-    List<BorrowQueue> findAllByBookIdAndStatus(Integer bookId, BorrowQueueStatus status);
+    Page<BorrowQueue> findAllByBookIdAndStatus(
+            Integer bookId,
+            BorrowQueueStatus status,
+            Pageable pageable);
 
     Optional<BorrowQueue> findFirstByBookIdAndStatusOrderByCreatedAtAsc(Integer bookId, BorrowQueueStatus status);
 }

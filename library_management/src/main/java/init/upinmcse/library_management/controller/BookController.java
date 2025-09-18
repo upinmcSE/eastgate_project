@@ -1,6 +1,7 @@
 package init.upinmcse.library_management.controller;
 
 import init.upinmcse.library_management.dto.ApiResponse;
+import init.upinmcse.library_management.dto.PageResponse;
 import init.upinmcse.library_management.dto.request.BookCreationRequest;
 import init.upinmcse.library_management.dto.request.BorrowBookRequest;
 import init.upinmcse.library_management.dto.request.SearchRequest;
@@ -54,10 +55,13 @@ public class BookController {
 
     @GetMapping("")
     @Operation(summary = "Get all books", description = "Retrieve a list of all books in the library")
-    public ResponseEntity<ApiResponse<List<BookResponse>>> getAllBooks(){
-        ApiResponse<List<BookResponse>> apiResponse = ApiResponse.<List<BookResponse>>builder()
+    public ResponseEntity<ApiResponse<PageResponse<BookResponse>>> getAllBooks(
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size
+    ){
+        ApiResponse<PageResponse<BookResponse>> apiResponse = ApiResponse.<PageResponse<BookResponse>>builder()
                 .message("Get All Books Success")
-                .data(bookService.getAllBooks())
+                .data(bookService.getAllBooks(page, size))
                 .build();
         return ResponseEntity.ok(apiResponse);
     }
@@ -75,20 +79,28 @@ public class BookController {
 
     @GetMapping("/genre/{name}")
     @Operation(summary = "Get books by genre", description = "Retrieve a list of all books in the library")
-    public ResponseEntity<ApiResponse<List<BookResponse>>> getBooksByGenre(@PathVariable("name") String name){
-        ApiResponse<List<BookResponse>> apiResponse = ApiResponse.<List<BookResponse>>builder()
+    public ResponseEntity<ApiResponse<PageResponse<BookResponse>>> getBooksByGenre(
+            @PathVariable("name") String name,
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size
+    ){
+        ApiResponse<PageResponse<BookResponse>> apiResponse = ApiResponse.<PageResponse<BookResponse>>builder()
                 .message("Get All Books by genre successful")
-                .data(bookService.searchBooksByGenre(name))
+                .data(bookService.searchBooksByGenre(name, page, size))
                 .build();
         return ResponseEntity.ok(apiResponse);
     }
 
     @GetMapping("/author/{name}")
     @Operation(summary = "Get books by author", description = "Retrieve a list of all books in the library")
-    public ResponseEntity<ApiResponse<List<BookResponse>>> getBooksByAuthor(@PathVariable("name") String name){
-        ApiResponse<List<BookResponse>> apiResponse = ApiResponse.<List<BookResponse>>builder()
+    public ResponseEntity<ApiResponse<PageResponse<BookResponse>>> getBooksByAuthor(
+            @PathVariable("name") String name,
+            @RequestParam(value = "page", defaultValue = "1") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size
+    ){
+        ApiResponse<PageResponse<BookResponse>> apiResponse = ApiResponse.<PageResponse<BookResponse>>builder()
                 .message("Get All Books by author successful")
-                .data(bookService.searchBooksByAuthor(name))
+                .data(bookService.searchBooksByAuthor(name, page, size))
                 .build();
         return ResponseEntity.ok(apiResponse);
     }

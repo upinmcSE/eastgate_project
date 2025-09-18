@@ -37,7 +37,10 @@ public class BookReturnConsumer {
         int bookId = event.getBookId();
 
         // select first patron in queue
-        Optional<BorrowQueue> borrowQueue = this.queueRepository.findFirstByBookIdAndStatusOrderByCreatedAtAsc(bookId, BorrowQueueStatus.PENDING);
+        Optional<BorrowQueue> borrowQueue = this.queueRepository
+                .findFirstByBookIdAndStatusOrderByCreatedAtAsc(
+                        bookId, BorrowQueueStatus.PENDING);
+
         if (borrowQueue.isPresent()) {
             BorrowQueue bq = borrowQueue.get();
             Book book = bq.getBook();
@@ -49,8 +52,8 @@ public class BookReturnConsumer {
                     .dueDate(LocalDateTime.now().plusDays(bq.getDuration()))
                     .build();
 
-            book.setAvailableCount(book.getAvailableCount() + 1);
-            book.setBorrowedCount(book.getBorrowedCount() - 1);
+            book.setAvailableCount(book.getAvailableCount() - 1);
+            book.setBorrowedCount(book.getBorrowedCount() + 1);
 
             this.borrowBookRepository.save(borrowBook);
 

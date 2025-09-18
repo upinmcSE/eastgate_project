@@ -1,6 +1,7 @@
 package init.upinmcse.library_management.service.impl;
 
 import init.upinmcse.library_management.constant.BorrowQueueStatus;
+import init.upinmcse.library_management.dto.PageResponse;
 import init.upinmcse.library_management.dto.request.BorrowQueueRequest;
 import init.upinmcse.library_management.dto.response.BorrowQueueResponse;
 import init.upinmcse.library_management.exception.EntityNotFoundException;
@@ -16,7 +17,10 @@ import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -57,23 +61,21 @@ public class BookQueueServiceImpl implements BookQueueService {
     }
 
     @Override
-    public List<BorrowQueueResponse> getBookQueueOfBook(int bookId) {
+    public PageResponse<BorrowQueueResponse> getBookQueueOfBook(int bookId, int page, int size) {
         Book book = this.bookRepository.findById(bookId)
                 .orElseThrow(() -> new EntityNotFoundException("Book not found"));
 
-        List<BorrowQueue> borrowQueueList = this.bookQueueRepository.findAllByBookIdAndStatus(book.getId(), BorrowQueueStatus.PENDING);
-
-        return borrowQueueList.stream().map(this.borrowQueueMapper::toBorrowQueueResponse).toList();
+        Pageable pageable = buildPageable(page, size);
+        return toPageResponse(this.bookQueueRepository.findAllByBookIdAndStatus(book.getId(), BorrowQueueStatus.PENDING, pageable), page);
     }
 
     @Override
-    public List<BorrowQueueResponse> getBookQueueOfUser(int userId) {
+    public PageResponse<BorrowQueueResponse> getBookQueueOfUser(int userId, int page, int size) {
         User user = this.userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
-        List<BorrowQueue> borrowQueueList = this.bookQueueRepository.findAllByUserIdAndStatus(user.getId(), BorrowQueueStatus.PENDING);
-
-        return borrowQueueList.stream().map(this.borrowQueueMapper::toBorrowQueueResponse).toList();
+        Pageable pageable = buildPageable(page, size);
+        return toPageResponse(this.bookQueueRepository.findAllByUserIdAndStatus(user.getId(), BorrowQueueStatus.PENDING, pageable), page);
     }
 
     @Override
@@ -97,5 +99,24 @@ public class BookQueueServiceImpl implements BookQueueService {
 //        borrowQueue.setStatus(BorrowQueueStatus.BORROWED);
 //        this.bookQueueRepository.save(borrowQueue);
         this.bookQueueRepository.delete(borrowQueue);
+    }
+
+    private Pageable buildPageable(int page, int size) {
+        return PageRequest.of(page - 1, size, Sort.by("createdAt").descending());
+    }
+
+    private PageResponse<BorrowQueueResponse> toPageResponse(Page<BorrowQueue> pageData, int page) {
+        List<BorrowQueueResponse> queueList = pageData.getContent()
+                .stream()
+                .map(this.borrowQueueMapper::toBorrowQueueResponse)
+                .toList();
+
+        return PageResponse.<BorrowQueueResponse>builder()
+                .currentPage(page)
+                .pageSize(pageData.getSize())
+                .totalPages(pageData.getTotalPages())
+                .totalRecords(pageData.getTotalElements())
+                .data(queueList)
+                .build();
     }
 }

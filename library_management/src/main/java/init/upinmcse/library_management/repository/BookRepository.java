@@ -3,6 +3,9 @@ package init.upinmcse.library_management.repository;
 import init.upinmcse.library_management.constant.BookStatus;
 import init.upinmcse.library_management.model.Book;
 import jakarta.persistence.LockModeType;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.JpaSpecificationExecutor;
 import org.springframework.data.jpa.repository.Lock;
@@ -30,9 +33,10 @@ public interface BookRepository extends JpaRepository<Book, Integer>, JpaSpecifi
             WHERE b.status = :status
             AND g.genreName = :name
             """)
-    List<Book> findBooksByGenre(
+    Page<Book> findBooksByGenre(
             @Param("status") BookStatus bookStatus,
-            @Param("name") String genreName);
+            @Param("name") String genreName,
+            Pageable pageable);
 
     @Query("""
             SELECT b
@@ -41,9 +45,10 @@ public interface BookRepository extends JpaRepository<Book, Integer>, JpaSpecifi
             WHERE b.status = :status
             AND a.fullName = :name
             """)
-    List<Book> findBookeByAuthor(
+    Page<Book> findBooksByAuthor(
             @Param("status") BookStatus bookStatus,
-            @Param("name") String authorName);
+            @Param("name") String authorName,
+            Pageable pageable);
 
-    List<Book> findByTitleContainingIgnoreCase(String title);
+    Page<Book> findByTitleContainingIgnoreCase(String title, Pageable pageable);
 }

@@ -1,12 +1,15 @@
 package init.upinmcse.library_management.mapper;
 
 import init.upinmcse.library_management.constant.BookStatus;
+import init.upinmcse.library_management.dto.PageResponse;
 import init.upinmcse.library_management.dto.request.BookCreationRequest;
 import init.upinmcse.library_management.dto.response.BookResponse;
 import init.upinmcse.library_management.model.Author;
 import init.upinmcse.library_management.model.Book;
 import init.upinmcse.library_management.model.Genre;
 import org.springframework.stereotype.Component;
+
+import java.util.List;
 
 @Component
 public class BookMapper {

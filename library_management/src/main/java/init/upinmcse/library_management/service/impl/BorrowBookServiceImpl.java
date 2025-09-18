@@ -4,6 +4,7 @@ import init.upinmcse.library_management.constant.BookStatus;
 import init.upinmcse.library_management.constant.BorrowBookStatus;
 import init.upinmcse.library_management.constant.BorrowQueueStatus;
 import init.upinmcse.library_management.constant.LateFeeStatus;
+import init.upinmcse.library_management.dto.PageResponse;
 import init.upinmcse.library_management.dto.request.BorrowBookRequest;
 import init.upinmcse.library_management.dto.response.BorrowBookResponse;
 import init.upinmcse.library_management.event.BookReturnedEvent;
@@ -17,6 +18,10 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.context.ApplicationEventPublisher;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -77,7 +82,7 @@ public class BorrowBookServiceImpl implements BorrowBookService {
         BorrowBook newBorrowBook = BorrowBook.builder()
                 .user(user)
                 .book(book)
-                .dueDate(LocalDateTime.now().plusDays(7))
+                .dueDate(LocalDateTime.now().plusDays(request.getDuration()))
                 .status(BorrowBookStatus.BORROWED)
                 .build();
         newBorrowBook = this.borrowBookRepository.save(newBorrowBook);
@@ -116,33 +121,53 @@ public class BorrowBookServiceImpl implements BorrowBookService {
     }
 
     @Override
-    public List<BorrowBookResponse> getAllBorrowedBookOfUser(int userId) {
+    public PageResponse<BorrowBookResponse> getAllBorrowedBookOfUser(int userId, int page, int size) {
         User user = this.userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found"));
 
-        List<BorrowBook> borrowBooks = this.borrowBookRepository.findAllByUserIdAndStatus(user.getId(), BorrowBookStatus.BORROWED);
-
-        return borrowBooks.stream().map(borrowBookMapper::toBorrowBookResponse).toList();
+        Pageable pageable = buildPageable(page, size);
+//        return toPageResponse(this.borrowBookRepository.findAllByUserIdAndStatus(user.getId(), BorrowBookStatus.BORROWED, pageable), page);
+        return toPageResponse(this.borrowBookRepository.findAllByUserId(user.getId(), pageable), page);
     }
 
     @Override
-    public List<BorrowBookResponse> getAllBorrowedBookOfBook(int bookId) {
+    public PageResponse<BorrowBookResponse> getAllBorrowedBookOfBook(int bookId, int page, int size) {
         Book book = this.bookRepository.findById(bookId)
                 .orElseThrow(() -> new EntityNotFoundException("Book not found"));
 
-        List<BorrowBook> borrowBooks = this.borrowBookRepository.findAllByBookIdAndStatus(book.getId(), BorrowBookStatus.BORROWED);
-
-        return borrowBooks.stream().map(borrowBookMapper::toBorrowBookResponse).toList();
+        Pageable pageable = buildPageable(page, size);
+//        return toPageResponse(this.borrowBookRepository.findAllByBookIdAndStatus(book.getId(), BorrowBookStatus.BORROWED, pageable), page);
+        return toPageResponse(this.borrowBookRepository.findAllByBookId(book.getId(), pageable), page);
     }
 
     @Override
-    public List<BorrowBookResponse> getAllBorrowedBooks() {
-        return this.borrowBookRepository.findAll().stream().map(this.borrowBookMapper::toBorrowBookResponse).toList();
+    public PageResponse<BorrowBookResponse> getAllBorrowedBooks(int page, int size) {
+        Pageable pageable = buildPageable(page, size);
+        return toPageResponse(this.borrowBookRepository.findAll(pageable), page);
     }
 
     @Override
-    public List<BorrowBookResponse> getAllBorrowedBookOverDue() {
-        List<BorrowBook> borrowBooks = this.borrowBookRepository.findByStatusAndDueDateBefore(BorrowBookStatus.BORROWED, LocalDateTime.now());
-        return borrowBooks.stream().map(this.borrowBookMapper::toBorrowBookResponse).toList();
+    public PageResponse<BorrowBookResponse> getAllBorrowedBookOverDue(int page, int size) {
+        Pageable pageable = buildPageable(page, size);
+        return toPageResponse(this.borrowBookRepository.findByStatusAndDueDateBefore(BorrowBookStatus.BORROWED, LocalDateTime.now(), pageable), page);
+    }
+
+    private Pageable buildPageable(int page, int size) {
+        return PageRequest.of(page - 1, size, Sort.by("createdAt").descending());
+    }
+
+    private PageResponse<BorrowBookResponse> toPageResponse(Page<BorrowBook> pageData, int page) {
+        List<BorrowBookResponse> bookList = pageData.getContent()
+                .stream()
+                .map(this.borrowBookMapper::toBorrowBookResponse)
+                .toList();
+
+        return PageResponse.<BorrowBookResponse>builder()
+                .currentPage(page)
+                .pageSize(pageData.getSize())
+                .totalPages(pageData.getTotalPages())
+                .totalRecords(pageData.getTotalElements())
+                .data(bookList)
+                .build();
     }
 }
