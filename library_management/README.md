@@ -201,7 +201,6 @@
 
 ### 5. Business Rules
 - BR-01: Một user chỉ được mượn tối đa 5 cuốn sách cùng lúc.
-- BR-02: Phí phạt được tính = số ngày trễ × 5.000 VNĐ.
 - BR-03: User có late fee chưa trả → không được mượn thêm sách.
 - BR-04: Waiting list hoạt động theo nguyên tắc FIFO (first come, first served).
 
