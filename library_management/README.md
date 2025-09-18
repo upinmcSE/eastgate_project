@@ -53,7 +53,6 @@
   - Sách hết → gợi ý tham gia Waiting List.
 - Hậu điều kiện: User mượn thành công sách.
 
-
 #### 2.5 View Borrowed Books
 - Mục tiêu: Xem danh sách sách đang mượn của user.
 - Actor: User, Admin
@@ -134,9 +133,8 @@
 - Tiền điều kiện: 
   - Có sách trả muộn.
 - Luồng chính:
-  - Hệ thống thông báo danh sách user trả muộn.
   - Admin xác nhận áp phí.
-  - Hệ thống cộng phí vào tài khoản user.
+  - Hệ thống thông báo khoản phạt cho user
 - Hậu điều kiện: User bị ràng buộc bởi phí phạt.
 
 #### 2.12 Process Late Fee Payment
@@ -162,7 +160,43 @@
 
 ### 3. Use Case Diagram
 
+#### 3.1 Admin
+
+<img src="./docs/UC-admin.png">
+
+#### 3.2 Book Management
+
+<img src="./docs/UC-manage-book.png">
+
+#### 3.3 Borrow book
+
+<img src="./docs/UC-view-borrow.png">
+
+#### 3.4 Join book queue
+
+<img src="./docs/UC-join-queue.png">
+
+#### 3.5 Late fee
+
+<img src="./docs/UC-latefee.png">
+
 ### 4. Sequence Diagram
+
+#### 4.1 Create User
+
+<img src="./docs/add-user.png">
+
+#### 4.2 Borrow book
+
+<img src="./docs/borrow-book.png">
+
+#### 4.3 Return book
+
+<img src="./docs/return-book.png">
+
+#### 4.4 Join book queue
+
+<img src="./docs/join-queue-book.png">
 
 
 ### 5. Business Rules
@@ -491,6 +525,22 @@ CREATE TABLE late_fee (
   - Parameters:
     - id (bắt buộc): ID của phí trễ hạn. 
   - Response: Thông tin thanh toán.
+
+### User APIs
+
+- GET /api/v1/user/{id}
+  - Tóm tắt: Lấy thông tin người dùng.
+  - Mô tả: Lấy thông tin hồ sơ của một người dùng cụ thể theo ID người dùng (ADMIN hoặc chính người dùng).
+  - Parameters:
+    - id (bắt buộc): ID của người dùng.
+  - Response: ApiResponseUserResponse.
+
+- PATCH /api/v1/user/{id}
+  - Tóm tắt: Cập nhật thông tin người dùng.
+  - Mô tả: Cập nhật chi tiết hồ sơ của một người dùng cụ thể theo ID người dùng (ADMIN hoặc chính người dùng).
+  - Parameters:
+    - id (bắt buộc): ID của người dùng.
+  - Response: ApiResponseVoid.
 
 
 ## Security consideration

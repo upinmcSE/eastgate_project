@@ -57,7 +57,8 @@ public class BookController {
     @Operation(summary = "Get all books", description = "Retrieve a list of all books in the library")
     public ResponseEntity<ApiResponse<PageResponse<BookResponse>>> getAllBooks(
             @RequestParam(value = "page", defaultValue = "1") int page,
-            @RequestParam(value = "size", defaultValue = "10") int size
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(value = "order", defaultValue = "ASC") String order
     ){
         ApiResponse<PageResponse<BookResponse>> apiResponse = ApiResponse.<PageResponse<BookResponse>>builder()
                 .message("Get All Books Success")
@@ -82,7 +83,8 @@ public class BookController {
     public ResponseEntity<ApiResponse<PageResponse<BookResponse>>> getBooksByGenre(
             @PathVariable("name") String name,
             @RequestParam(value = "page", defaultValue = "1") int page,
-            @RequestParam(value = "size", defaultValue = "10") int size
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(value = "order", defaultValue = "ASC") String order
     ){
         ApiResponse<PageResponse<BookResponse>> apiResponse = ApiResponse.<PageResponse<BookResponse>>builder()
                 .message("Get All Books by genre successful")
@@ -96,7 +98,8 @@ public class BookController {
     public ResponseEntity<ApiResponse<PageResponse<BookResponse>>> getBooksByAuthor(
             @PathVariable("name") String name,
             @RequestParam(value = "page", defaultValue = "1") int page,
-            @RequestParam(value = "size", defaultValue = "10") int size
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(value = "order", defaultValue = "ASC") String order
     ){
         ApiResponse<PageResponse<BookResponse>> apiResponse = ApiResponse.<PageResponse<BookResponse>>builder()
                 .message("Get All Books by author successful")

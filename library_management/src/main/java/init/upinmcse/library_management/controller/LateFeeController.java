@@ -67,7 +67,8 @@ public class LateFeeController {
     )
     public ResponseEntity<ApiResponse<PageResponse<LateFeeResponse>>> getLateFees(
             @RequestParam(value = "page", defaultValue = "1") int page,
-            @RequestParam(value = "size", defaultValue = "10") int size
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(value = "order", defaultValue = "ASC") String order
     ){
         ApiResponse<PageResponse<LateFeeResponse>> apiResponse = ApiResponse.<PageResponse<LateFeeResponse>>builder()
                 .message("Get late fees successfully")
@@ -87,7 +88,8 @@ public class LateFeeController {
             @PathVariable("id") int userId,
             @AuthenticationPrincipal Jwt jwt,
             @RequestParam(value = "page", defaultValue = "1") int page,
-            @RequestParam(value = "size", defaultValue = "10") int size
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(value = "order", defaultValue = "ASC") String order
     ){
         ApiResponse<PageResponse<LateFeeResponse>> apiResponse = ApiResponse.<PageResponse<LateFeeResponse>>builder()
                 .message("Get late fees of user successfully")

@@ -58,7 +58,8 @@ public class BookQueueController {
             @PathVariable("id") int userId,
             @AuthenticationPrincipal Jwt jwt,
             @RequestParam(value = "page", defaultValue = "1") int page,
-            @RequestParam(value = "size", defaultValue = "10") int size
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(value = "order", defaultValue = "ASC") String order
     ) {
         ApiResponse<PageResponse<BorrowQueueResponse>> apiResponse = ApiResponse.<PageResponse<BorrowQueueResponse>>builder()
                 .message("Get list book-queue of you successful")
@@ -77,7 +78,8 @@ public class BookQueueController {
     public ResponseEntity<ApiResponse<PageResponse<BorrowQueueResponse>>> getQueueOfBook(
             @PathVariable("id") int bookId,
             @RequestParam(value = "page", defaultValue = "1") int page,
-            @RequestParam(value = "size", defaultValue = "10") int size
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(value = "order", defaultValue = "ASC") String order
     ) {
         ApiResponse<PageResponse<BorrowQueueResponse>> apiResponse = ApiResponse.<PageResponse<BorrowQueueResponse>>builder()
                 .message("Get list book-queue of you successful")

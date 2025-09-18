@@ -37,7 +37,10 @@ public class UserController {
             description = "Update the profile details of a specific user by user ID. "
                     + "Accessible by ADMIN or the user themselves."
     )
-    public ResponseEntity<ApiResponse<Void>> changeInfo(@PathVariable("id") String userId){
+    public ResponseEntity<ApiResponse<Void>> changeInfo(
+            @PathVariable("id") String userId
+
+    ){
         return null;
     }
 }

@@ -31,7 +31,7 @@ public class BorrowBookController {
             description = "Allows a user to borrow a book from the library. "
                     + "Creates a new borrow record and decreases the available quantity of the book."
     )
-    @PreAuthorize("hasRole('')")
+    @PreAuthorize("#request.userId == #principal.claims['userId']")
     public ResponseEntity<ApiResponse<BorrowBookResponse>> borrowBook(
             @RequestBody BorrowBookRequest request,
             @AuthenticationPrincipal Jwt principal
@@ -50,7 +50,7 @@ public class BorrowBookController {
             description = "Allows a user to return a previously borrowed book. "
                     + "Updates the borrow record and increases the available quantity of the book."
     )
-    @PreAuthorize("hasRole('')")
+    @PreAuthorize("#request.userId == #principal.claims['userId']")
     public ResponseEntity<ApiResponse<BorrowBookResponse>> returnBook(
             @RequestBody BorrowBookRequest request,
             @AuthenticationPrincipal Jwt principal
@@ -71,7 +71,8 @@ public class BorrowBookController {
     )
     public ResponseEntity<ApiResponse<PageResponse<BorrowBookResponse>>> borrowBook(
             @RequestParam(value = "page", defaultValue = "1") int page,
-            @RequestParam(value = "size", defaultValue = "10") int size
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(value = "order", defaultValue = "ASC") String order
     ){
         ApiResponse<PageResponse<BorrowBookResponse>> apiResponse = ApiResponse.<PageResponse<BorrowBookResponse>>builder()
                 .message("Get All borrow book successful")
@@ -90,7 +91,8 @@ public class BorrowBookController {
     public ResponseEntity<ApiResponse<PageResponse<BorrowBookResponse>>> borrowBookOfBook(
             @PathVariable("id") int bookId,
             @RequestParam(value = "page", defaultValue = "1") int page,
-            @RequestParam(value = "size", defaultValue = "10") int size
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(value = "order", defaultValue = "ASC") String order
     ){
         ApiResponse<PageResponse<BorrowBookResponse>> apiResponse = ApiResponse.<PageResponse<BorrowBookResponse>>builder()
                 .message("Get All borrow book successful")
@@ -110,7 +112,8 @@ public class BorrowBookController {
             @PathVariable("id") int userId,
             @AuthenticationPrincipal Jwt jwt,
             @RequestParam(value = "page", defaultValue = "1") int page,
-            @RequestParam(value = "size", defaultValue = "10") int size
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(value = "order", defaultValue = "ASC") String order
     ){
         ApiResponse<PageResponse<BorrowBookResponse>> apiResponse = ApiResponse.<PageResponse<BorrowBookResponse>>builder()
                 .message("Get All borrow book successful")
@@ -128,7 +131,8 @@ public class BorrowBookController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ApiResponse<PageResponse<BorrowBookResponse>>> borrowBookOverdue(
             @RequestParam(value = "page", defaultValue = "1") int page,
-            @RequestParam(value = "size", defaultValue = "10") int size
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(value = "order", defaultValue = "ASC") String order
     ){
         ApiResponse<PageResponse<BorrowBookResponse>> apiResponse = ApiResponse.<PageResponse<BorrowBookResponse>>builder()
                 .message("Get All borrow book over due successful")
