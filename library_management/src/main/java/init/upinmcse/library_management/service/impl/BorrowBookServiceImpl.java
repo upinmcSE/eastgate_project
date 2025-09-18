@@ -104,6 +104,8 @@ public class BorrowBookServiceImpl implements BorrowBookService {
         Book book = this.bookRepository.findById(request.getBookId())
                 .orElseThrow(() -> new EntityNotFoundException("Book not found"));
 
+        // check borrow in late fee
+
         book.setAvailableCount(book.getAvailableCount() + 1);
         book.setBorrowedCount(book.getBorrowedCount() - 1);
 
